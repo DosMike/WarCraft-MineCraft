@@ -1,0 +1,157 @@
+g = Global / Race static
+p = Player value
+a = Array
+b = boolean
+i = int/long
+f = float/double
+s = String
+o = object
+
+piGlobalLevel: sum of all skillpoints in all races (spent or not)
+goRace:
+  gsName
+  gsDescription
+  giRequiredGlobalLevel
+  piLevel
+  piXP - xp in level
+  gaiLevelXP - as soon as the player has gaiLevelXP[piLevel-1] piXP the player will level up
+  gaoAbilities - max 5, the 5th has to be passive, 1-4 use (if active) the commands in order ability1, ability2, ability3, ultimate
+   giLevelNeeded - below this level you can not spend skill points into this ability
+   gfCooldown
+   gsName
+   gsDesctription
+   piAbilityLevel
+   pfOnCooldown
+   gasSkills - see skill description
+   gaaoParameterMap - two-dimentional map that fills skill params like gaao[piAbilityLevel][iSkillParamNo], fist dimension sets max ability level
+
+Skill description:
+These are strings that, space delimited, are used to call effect methods using reflection
+For this the general syntax is 
+
+Skill: Trigger (Condition...) EffectName Params...[ | EffectName Params...[...]]
+
+Trigger: 
+  "Active" make this skill active, meaning the player has to use ability 1-3 or ultimate to trigger this
+  "OnSneak" is player is sneaking
+  "OnJump" player is jumping
+  "OnAttack" player is attacking entity
+  "OnHit" player was hit
+  "OnBlock"
+  "OnUnblock"
+  "OnUseItem" use condition to further filter
+  "OnSprint"
+  "OnDrop" use condition to further filter
+  "OnPickup" use condition to further filter
+  "OnSpawn"
+  "OnDeath"
+  
+Condition: Object Comperator Value[ <&|/> Object Comperator Value[...]]
+  Conditions are validating without order from left to right, you can however group them with round brackets 
+
+  Object: 
+    "source" the player himself
+    "target" the victim, can be player or living entity or block
+    "item" if a item is involved this is the item
+    "damage" action damage if any
+    "random" if you want a certain chance to trigger this, use above and below, values will be 0.0 .. 100.0
+    for source and target also .hp, .mana and .xp - I refer to the hungerbar as mana... seems fitting
+  
+  Comperator:
+    "Above"
+    "Below"
+    "teammate" - is in the same team as Value specifies
+    "opponent" - is not in the team specified my Value
+    "ofType" - calls getType on Value, EntityType for target, ItemType for item
+    "notType" - oposite of ofType
+  
+  Value:
+    Can be numeric (for hp, mana, xp), "damage", "target", "item", String (for types), $n to get a value from gaaoParameterMap[piAbilityLevel][n]
+    
+EffectName:
+  Name of a method in the effect class, this method will be called using reflection
+
+Params:
+  List of parameters for the Effect
+  Can be numeric (for hp, mana, xp), "damage", "source", "target", "item", String (for types), $n to get a value from gaaoParameterMap[piAbilityLevel][n]
+  Valid numerics are also source.hp, source.mana, target.hp, target.mana
+  A valid parameter value can also be a mathematic formula as long as all values (including gaaoParameterMap) are numeric 
+  The ammount of params is determed by the effect method and can not varry.
+  
+
+Example Race Config:
+human { #this is just an ID, invisible to the player
+  name: "Human Aliance"
+  desc: "The noble warriors of humanity employ both a strong military and powerful magics in the defense of their shining kingdoms. Both knights and wizards fight side by side on the field of battle against those who would threaten the sanctity and peace of the Alliance. Although the Alliance has all but fallen apart, the valiant citizens of Azeroth and Lordaeron have once again taken up arms against the enemies of humanity."
+  requiredLevel: 0
+  levelXP: [0, 0, 0, 100, 200, 300, 400, 500] # first 3 skillpoints are free, max level is 8
+  skills [
+    {
+      skillNeeded: 0
+      name: "Invisibility"
+      desc: "You will be harder to see"
+      cooldown: 1
+      parameter: [
+        [ 0.1, 4.5 ]
+        [ 0.25, 4 ]
+        [ 0.33, 3.5 ]
+        [ 0.4, 3 ]
+        [ 0.5, 2.5 ]
+        [ 0.66, 2 ]
+        [ 0.75, 1.5 ]
+        [ 0.1, 1 ]
+      ]
+      effects: [
+        "OnHit (source.mana Above 1) invisibility source =damage/$2 | drainMana source 1",
+        "OnSneak (source.mana Above 1) invisibility source =$1 | drainMana source 1"
+      ]
+    }, {
+      skillNeeded: 0
+      name: "Devotion Aura"
+      desc: "Get more HP"
+      cooldown: 0
+      parameter: [
+      	[ 22.5 ]
+      	[ 25 ]
+      	[ 27.5 ]
+      	[ 30 ]
+      	[ 32.5 ]
+      	[ 35 ]
+      	[ 37.5 ]
+      	[ 40 ]
+      ]
+      effects: [
+        "OnSpawn () setHealth source =$1"
+      ]
+    }, {
+      skillNeeded: 0
+      name: "Bash"
+      desc: "Chance to freeze your enemies"
+      cooldown: 0
+      parameter: [
+        [ 5 ]
+        [ 10 ]
+        [ 15 ]
+        [ 20 ]
+        [ 25 ]
+        [ 30 ]
+        [ 35 ]
+        [ 40 ]
+      ]
+      effects: [
+        "OnAttack (random Below =$1 & source.mana Above =$1/5) freeze target 1 | drainMana source =$1/5"
+      ]
+    }, {
+      skillNeeded: 8
+      name: "Teleport"
+      desc: "Teleport to where you're looking at"
+      cooldown: 10
+      parameter: [ 
+        [ 1 ] # just to tell the plugin there is one level
+      ]
+      effects: [
+        "Active (source.mana Above 5) blink source 15"
+      ]
+    }
+  ]
+}

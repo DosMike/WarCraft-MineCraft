@@ -1,0 +1,11 @@
+[{
+    "modid": "dosmike_warcraft",
+    "name": "WarCraft MC",
+    "version": "0.1",
+    "description": "Races and Skills, Level and Fight",
+    "authorList": [
+        "DosMike"
+    ],
+    "dependencies": [
+    ]
+}]

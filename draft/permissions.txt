@@ -1,0 +1,7 @@
+wc.race.abulity1
+wc.race.abulity2
+wc.race.abulity3
+wc.race.ultimate
+wc.race.change
+wc.race.list
+wc.race.menu
