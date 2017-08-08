@@ -132,7 +132,7 @@ public class ManaPipe {
 	public static void tick() {
 		if (mode!=Mode.BOSSBAR) return;
 		Sponge.getServer().getOnlinePlayers().forEach(player -> {
-			if (!Profile.loadOrCreate(player).isActive()) return;
+			if (!Profile.loadOrCreate(player).isActive(player)) return;
 			addMana(player, regeneration);
 		});
 	}

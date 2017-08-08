@@ -10,6 +10,7 @@ import java.util.Optional;
 import com.google.common.reflect.TypeToken;
 
 import de.dosmike.sponge.WarCraftMC.WarCraft;
+import de.dosmike.sponge.WarCraftMC.wcUtils;
 import de.dosmike.sponge.WarCraftMC.exceptions.DuplicateIDException;
 import de.dosmike.sponge.WarCraftMC.races.Race;
 import de.dosmike.sponge.WarCraftMC.races.Skill;
@@ -45,6 +46,9 @@ public class RaceManager {
 		return races.values();
 	}
 
+	@SuppressWarnings("serial")
+	private static TypeToken<List<Race>> ttlr = new TypeToken<List<Race>>(){}; 
+	
 	public static void loadRaces() {
 		TypeSerializerCollection customSerializer = TypeSerializers.getDefaultSerializers().newChild();
 		customSerializer.registerType(TypeToken.of(Skill.class), new SkillSerializer());
@@ -52,7 +56,7 @@ public class RaceManager {
 		ConfigurationOptions options = ConfigurationOptions.defaults().setSerializers(customSerializer);
 		try {
 			ConfigurationNode root = warCraft.getRaceConfig().load(options);
-			Collection<Race> races = root.getNode("races").getValue(new TypeToken<List<Race>>(){}, new LinkedList<Race>());
+			Collection<Race> races = root.getNode("races").getValue(ttlr, new LinkedList<Race>());
 			for (Race race : races) {
 				try {
 					registerRace(race);
@@ -61,7 +65,12 @@ public class RaceManager {
 				}
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+//			e.printStackTrace();
+			
+			StringBuilder simpleTrace = new StringBuilder("Unable to load your RACES.CONF");
+			wcUtils.superSimpleTrace(simpleTrace, e, "\n");
+			System.err.println(simpleTrace.toString());
+			
 			WarCraft.w("Could not load races!");
 		}
 	}

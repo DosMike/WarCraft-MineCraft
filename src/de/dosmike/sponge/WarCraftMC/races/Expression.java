@@ -64,7 +64,7 @@ public class Expression {
 				return Optional.of(Double.valueOf(racedata.get().getXP()));
 			} else return Optional.empty();
 		}
-		if (string.charAt(0)=='$') {
+		if (string.matches("[$][0-9]+")) {
 			try {
 				Integer i = Integer.parseInt(string.substring(1));
 				Double value = data.getParammap()[i-1];

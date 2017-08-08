@@ -361,6 +361,7 @@ private double _evaluate(int beg, int end) throws NumberFormatException, Arithme
  * @param lft       Left-value with which to initialize this subexpression.
  * @param cur       Current operator (the operator for this subexpression).
  */
+@SuppressWarnings("unused")
 private double _evaluate(int beg, int end, double lft, Operator pnd, Operator cur) throws NumberFormatException, ArithmeticException {
     Operator                            nxt=OPERAND;                                                // next operator
     int                                 ofs;                                                        // current expression offset

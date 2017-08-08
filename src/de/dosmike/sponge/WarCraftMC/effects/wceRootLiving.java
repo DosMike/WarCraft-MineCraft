@@ -1,12 +1,7 @@
 package de.dosmike.sponge.WarCraftMC.effects;
 
-import org.spongepowered.api.effect.sound.SoundCategories;
-import org.spongepowered.api.effect.sound.SoundTypes;
 import org.spongepowered.api.entity.living.Living;
-import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.text.format.TextColors;
 
-import de.dosmike.sponge.WarCraftMC.WarCraft;
 import de.dosmike.sponge.WarCraftMC.Manager.StatusEffectManager;
 
 public class wceRootLiving implements wcEffect {
@@ -33,8 +28,8 @@ public class wceRootLiving implements wcEffect {
 
 	@Override
 	public void onApply(Living entity) {
-		entity.getWorld().playSound(SoundTypes.BLOCK_GLASS_BREAK, SoundCategories.PLAYER, entity.getLocation().getPosition(), 1.0);
-		if (entity instanceof Player)  WarCraft.tell( ((Player) entity), TextColors.AQUA, String.format("You are frozen for %.2fs", duration));
+//		entity.getWorld().playSound(SoundTypes.BLOCK_GLASS_BREAK, SoundCategories.PLAYER, entity.getLocation().getPosition(), 1.0);
+//		if (entity instanceof Player)  WarCraft.tell( ((Player) entity), TextColors.AQUA, String.format("You are frozen for %.2fs", duration));
 		StatusEffectManager.frozenEntities.add(entity.getUniqueId());
 	}
 
@@ -46,8 +41,8 @@ public class wceRootLiving implements wcEffect {
 	@Override
 	public void onRemove(Living entity) {
 		StatusEffectManager.frozenEntities.remove(entity.getUniqueId());
-		entity.getWorld().playSound(SoundTypes.BLOCK_GLASS_BREAK, SoundCategories.PLAYER, entity.getLocation().getPosition(), 1.0);
-		if (entity instanceof Player)  WarCraft.tell( ((Player) entity), TextColors.AQUA, "You are no longer frozen");
+//		entity.getWorld().playSound(SoundTypes.BLOCK_GLASS_BREAK, SoundCategories.PLAYER, entity.getLocation().getPosition(), 1.0);
+//		if (entity instanceof Player)  WarCraft.tell( ((Player) entity), TextColors.AQUA, "You are no longer frozen");
 	}
 	
 }

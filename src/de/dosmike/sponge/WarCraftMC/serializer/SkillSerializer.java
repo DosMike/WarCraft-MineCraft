@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.google.common.reflect.TypeToken;
 
+import de.dosmike.sponge.WarCraftMC.exceptions.ActionBuilderException;
 import de.dosmike.sponge.WarCraftMC.races.Skill;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
@@ -27,9 +28,9 @@ public class SkillSerializer implements TypeSerializer<Skill> {
 	public Skill deserialize(TypeToken<?> arg0, ConfigurationNode arg1) throws ObjectMappingException {
 		Skill.Builder builder = Skill.builder(arg1.getNode("id").getString("default_id"));
 		builder.setName(arg1.getNode("name").getString("Unnamed Skill"));
-		builder.setDescription(arg1.getNode("desc").getString(""));
+		builder.setDescription(arg1.getNode("description").getString(""));
 		builder.setSkillNeeded(arg1.getNode("skillNeeded").getInt(0));
-		builder.setCooldown(arg1.getNode("cooldown").getDouble(0.0));
+		builder.setCooldown(arg1.getNode("cooldown").getString("0"));
 		
 		//construct fallback value
 		List<List<Double>> fallBack = new ArrayList<>();
@@ -41,7 +42,11 @@ public class SkillSerializer implements TypeSerializer<Skill> {
 		//convert lists to array and write to skill
 		builder.setParameterMap(convert(matrix)); //.getValue(ttdaa, new double[][]{ { 1.0 } }));
 		List<String> d = arg1.getNode("effects").getValue(ttsl, new LinkedList<String>());
-		builder.setActions(d.toArray(new String[d.size()]));
+		try {
+			builder.setActions(d.toArray(new String[d.size()]));
+		} catch (ActionBuilderException e) {
+			throw new ObjectMappingException("Error parsing skill list", e);
+		}
 		return builder.build();
 	}
 	

@@ -28,6 +28,8 @@ import de.dosmike.sponge.WarCraftMC.Manager.DamageManager;
 import de.dosmike.sponge.WarCraftMC.Manager.NextSpawnActionManager;
 import de.dosmike.sponge.WarCraftMC.Manager.PlayerStateManager;
 import de.dosmike.sponge.WarCraftMC.Manager.StatusEffectManager;
+import de.dosmike.sponge.WarCraftMC.catalogs.ResultProperty;
+import de.dosmike.sponge.WarCraftMC.catalogs.SkillResult;
 import de.dosmike.sponge.WarCraftMC.effects.wcEffect;
 import de.dosmike.sponge.WarCraftMC.events.EventCause;
 import de.dosmike.sponge.WarCraftMC.races.Action.Trigger;
@@ -46,8 +48,8 @@ public class SpongeEventListeners {
 	
 	@Listener
 	public void onPlayerPart(ClientConnectionEvent.Disconnect event) {
-		NextSpawnActionManager.removeAll(event.getTargetEntity());
 		StatusEffectManager.remove(event.getTargetEntity(), wcEffect.class); //remove all effects
+		NextSpawnActionManager.removeAll(event.getTargetEntity());
 		PlayerStateManager.forceOut(event.getTargetEntity());
 		Profile.loadOrCreate(event.getTargetEntity()).saveAndUnload();
 		ManaPipe.dropPlayer(event.getTargetEntity());
@@ -84,7 +86,15 @@ public class SpongeEventListeners {
 					.setOpponent(target)
 					.setDamage(targetdamage)
 					.build();
-			profile.getRaceData().get().fire(profile, data);
+			Optional<SkillResult> result = profile.getRaceData().get().fire(profile, data);
+			if (result.isPresent()) {
+				if (result.get().get(ResultProperty.CANCEL_ACTION).contains(true)) event.setCancelled(true);
+				else {
+					Double modifier = 0.0;
+					for (Double mod : result.get().get(ResultProperty.MODIFY_DAMAGE)) modifier+=mod;
+					event.setBaseDamage(event.getBaseDamage()+modifier);
+				}
+			}
 		}
 		if (target instanceof Player) {
 			Profile profile = Profile.loadOrCreate((Player)target);
@@ -93,7 +103,10 @@ public class SpongeEventListeners {
 					.setOpponent((Living)attacker)
 					.setDamage(targetdamage)
 					.build();
-			profile.getRaceData().get().fire(profile, data);
+			Optional<SkillResult> result = profile.getRaceData().get().fire(profile, data);
+			if (result.isPresent()) {
+				if (result.get().get(ResultProperty.CANCEL_ACTION).contains(true)) event.setCancelled(true);
+			}
 		}
 		if (event.willCauseDeath() && target instanceof Player) {
 			Profile profile = Profile.loadOrCreate((Player)target);
@@ -103,6 +116,10 @@ public class SpongeEventListeners {
 					.setDamage(targetdamage)
 					.build();
 			profile.getRaceData().get().fire(profile, data);
+			Optional<SkillResult> result = profile.getRaceData().get().fire(profile, data);
+			if (result.isPresent()) {
+				if (result.get().get(ResultProperty.CANCEL_ACTION).contains(true)) event.setCancelled(true);
+			}
 		}
 		
 		//xp stuff
@@ -133,6 +150,8 @@ public class SpongeEventListeners {
 	@Listener
 	public void onRespawn(RespawnPlayerEvent event) {
 		//use getIfOnline because the original player is probably still dead or in another dimension. or dead
+		NextSpawnActionManager.onSpawn(event.getTargetEntity());
+		
 		Optional<Profile> profile = Profile.getIfOnline(event.getOriginalPlayer().getUniqueId());
 		if (!profile.isPresent()) return;
 		ActionData data = ActionData.builder(Trigger.ONSPAWN)

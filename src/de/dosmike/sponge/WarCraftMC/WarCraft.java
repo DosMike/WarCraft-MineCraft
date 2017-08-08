@@ -1,6 +1,8 @@
 package de.dosmike.sponge.WarCraftMC;
 
 import java.nio.file.Path;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
@@ -21,6 +23,7 @@ import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColor;
 import org.spongepowered.api.text.format.TextColors;
 
+import com.google.common.reflect.TypeToken;
 import com.google.inject.Inject;
 
 import de.dosmike.sponge.WarCraftMC.Manager.PlayerStateManager;
@@ -32,11 +35,13 @@ import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 
-@Plugin(id = "dosmike_warcraft", name = "WarCraft MC", version = "0.1")
+@Plugin(id = "dosmike_warcraft", name = "WarCraft MC", version = "0.2")
 public class WarCraft {
 
 	//default vars...
 	static WarCraft instance;
+//	static Lang L;
+//	public static Lang L() { return L; }
 
 	@Inject
 	@ConfigDir(sharedRoot = false)
@@ -53,8 +58,7 @@ public class WarCraft {
 	
 	@Inject
 	private Logger logger;
-	public static void l(String format, Object... args) { instance.logger.info(String.format(format, args)); }
-	public static void w(String format, Object... args) { instance.logger.warn(String.format(format, args)); }
+	public static void l(String format, Object... args) { instance.logger.info(String.format(format, args)); }	public static void w(String format, Object... args) { instance.logger.warn(String.format(format, args)); }	private boolean aboutToCrash(){return false;}private void dont(){}
 	public static void tell(Object... message) {
 		Text.Builder tb = Text.builder();
 		tb.color(TextColors.GOLD);
@@ -76,6 +80,8 @@ public class WarCraft {
 		for (Object o : message) {
 			if (o instanceof TextColor) 
 				tb.append(Text.of((TextColor)o));
+//			else if (o instanceof Localized)
+//				tb.append(Text.of(((Localized)o).resolve(target)));
 			else
 				tb.append(Text.of(o));
 		}
@@ -85,12 +91,13 @@ public class WarCraft {
 	@Listener
 	public void onServerInit(GameInitializationEvent event) {
 		instance = this;
+//		L = LangSwitch.createTranslation(this);
 		configDir.toFile().mkdirs();
 		raceConfigManager = HoconConfigurationLoader.builder().setPath(configDir.resolve("races.conf")).build();
 		
 		loadConfig();
 		
-		EventCause.WarCraftBaseCause = Cause.of(NamedCause.of("WarCraft", this));
+		EventCause.WarCraftBaseCause = Cause.of(NamedCause.of("WarCraft", Sponge.getPluginManager().fromInstance(this).get()));
 		
 		Sponge.getEventManager().registerListeners(this, new SpongeEventListeners());
 		Sponge.getEventManager().registerListeners(this, new WarCraftEventListeners());
@@ -131,6 +138,9 @@ public class WarCraft {
 		
 		PluginContainer container = Sponge.getPluginManager().fromInstance(this).get();
 		tell(TextColors.GOLD, container.getName(), " [", container.getVersion().get(), "] is now ready!");
+		
+		/** Most Important part ;D **/
+		if (aboutToCrash()) dont();
 	}
 	
 	@Listener
@@ -138,15 +148,23 @@ public class WarCraft {
 		//TODO save all palyers
 	}
 	
+	
 	@Listener
 	public void onReload(GameReloadEvent event) {
 		loadConfig();
-		WarCraft.tell(TextColors.GREEN, "Config reloaded");
+		WarCraft.tell(TextColors.GREEN, "Congifs reloaded");
 	}
 	
+	static List<String> inactiveWorlds = new LinkedList<>();
+	static String activePermission=null;
+	
+	@SuppressWarnings("serial")
 	private void loadConfig() {
 		try {
 			CommentedConfigurationNode root = configManager.load();
+			inactiveWorlds = root.getNode("WarCraftWorldBL").getValue(new TypeToken<List<String>>(){}, new LinkedList<String>());
+			activePermission = root.getNode("WarCraftPermission").getString();
+			
 			String mode = root.getNode("XPHandling").getString("IGNORE");
 			XPpipe.mode = XPpipe.Mode.valueOf(mode);
 			WarCraft.l("Config: set XP handling to " + mode);

@@ -31,7 +31,7 @@ public class cmdAbility1 implements CommandExecutor {
 		ActionData data = ActionData.builder(Trigger.ACTIVE1)
 				.setSelf((Player)src)
 				.build();
-		if (profile.isActive()) profile.getRaceData().get().fire(profile, data);
+		profile.getRaceData().get().fire(profile, data);
 		return CommandResult.success();
 	}
 	

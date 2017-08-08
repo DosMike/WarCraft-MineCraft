@@ -41,8 +41,10 @@ public class Profile {
 	 * <li> Does the player have a race?
 	 * <li> Is the player in a WC world?
 	 * <li> Does the player have permissions to take part? */
-	public boolean isActive() {
+	public boolean isActive(Player player) {
 		if (racedata==null) return false;
+		if (WarCraft.activePermission!=null && !player.hasPermission(WarCraft.activePermission)) return false;
+		if (WarCraft.inactiveWorlds.contains(player.getWorld().getName())) return false;
 		return true;
 	}
 	
@@ -62,10 +64,12 @@ public class Profile {
 				.setPath(WarCraft.instance.getConfigDir().resolve("Profile").resolve(playerID.toString())).build();
 		
 		try {
-			ConfigurationNode root = loader.load().getNode("profile");
-			root.getNode("activeRace").setValue(racedata.getRace().getID());
+			ConfigurationNode root = loader.load();
 			root.getNode("level").setValue(globalLevel);
-			if (racedata!=null) racedata.Save(root.getNode("races"));
+			if (racedata!=null) {
+				root.getNode("activeRace").setValue(racedata.getRace().getID());
+				racedata.Save(root.getNode("races"));
+			}
 			loader.save(root);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -82,7 +86,7 @@ public class Profile {
 		
 		Profile p = new Profile(player);
 		try {
-			ConfigurationNode root = loader.load();//.getNode("profile");
+			ConfigurationNode root = loader.load();
 			p.globalLevel = root.getNode("level").getInt(1);
 			Optional<Race> r = RaceManager.getRace(root.getNode("activeRace").getString(""));
 			if (r.isPresent()) {
@@ -117,8 +121,9 @@ public class Profile {
 		ChangeRaceEvent event = new ChangeRaceEvent(this, (racedata!=null?racedata.race:null), to, new EventCause(cause).get());
 		/* copy this */Sponge.getEventManager().post(event); if (event.isCancelled()) return false;/* pasta that */
 		
+		WarCraft.instance.getConfigDir().resolve("Profile").toFile().mkdirs();//becaus configurate does NOT create dirs
 		ConfigurationLoader<CommentedConfigurationNode> loader = HoconConfigurationLoader.builder()
-				.setPath(WarCraft.instance.getConfigDir().resolve(playerID.toString())).build();
+				.setPath(WarCraft.instance.getConfigDir().resolve("Profile").resolve(playerID.toString())).build();
 		try {
 			ConfigurationNode root = loader.load();
 			if (racedata != null) racedata.Save(root);
@@ -153,7 +158,7 @@ public class Profile {
 			LevelUpEvent event2 = new LevelUpEvent(this, levels, cause);
 			/* copy this */Sponge.getEventManager().post(event2); if (event2.isCancelled()) return;/* pasta that */
 			
-			while (levels-->0) racedata.levelUp(true); 
+			while (levels-->0) { racedata.levelUp(true); globalLevel++; } 
 		}
 	}
 }

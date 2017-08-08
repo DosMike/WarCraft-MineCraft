@@ -80,4 +80,11 @@ public class wcUtils {
 			return Optional.empty();
 		}
 	}
+	
+	/** formats a simplified stacktrace into the string builder without java soruces attached */
+	public static void superSimpleTrace(StringBuilder sb, Throwable t, String s) {
+		sb.append(s+"> "+t.getClass().getSimpleName()+": "+t.getMessage());
+		Throwable c = t.getCause();
+		if (c!=null) superSimpleTrace(sb, c, s+" ");
+	}
 }

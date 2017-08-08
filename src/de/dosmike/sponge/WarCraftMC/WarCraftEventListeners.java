@@ -15,8 +15,8 @@ import de.dosmike.sponge.WarCraftMC.effects.wcEffect;
 import de.dosmike.sponge.WarCraftMC.events.GainXPEvent;
 import de.dosmike.sponge.WarCraftMC.events.LevelUpEvent;
 import de.dosmike.sponge.WarCraftMC.events.ProfileStateChangeEvent;
-import de.dosmike.sponge.WarCraftMC.races.ActionData;
 import de.dosmike.sponge.WarCraftMC.races.Action.Trigger;
+import de.dosmike.sponge.WarCraftMC.races.ActionData;
 
 /** This will handle events we send, basically to prettify the code a bit */
 public class WarCraftEventListeners {

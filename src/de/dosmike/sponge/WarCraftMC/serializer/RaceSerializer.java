@@ -1,6 +1,5 @@
 package de.dosmike.sponge.WarCraftMC.serializer;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -19,7 +18,9 @@ public class RaceSerializer implements TypeSerializer<Race> {
 		//All i care about is that i can read the config with one line of code in the end... that's all
 	}
 	
+	@SuppressWarnings("serial")
 	TypeToken<List<Long>> ttla = new TypeToken<List<Long>>(){};
+	@SuppressWarnings("serial")
 	TypeToken<List<Skill>> ttls = new TypeToken<List<Skill>>(){};
 	
 	@Override
@@ -29,9 +30,10 @@ public class RaceSerializer implements TypeSerializer<Race> {
 		builder.setDescription(arg1.getNode("description").getString("No Description"));
 		builder.setRequiredLevel(arg1.getNode("requiredLevel").getInt(0));
 		builder.setStartSkill(arg1.getNode("startSkill").getInt(0));
-		List<Long> list = new ArrayList<>();
-		list = arg1.getNode("levelXP").getValue(ttla, list);
-		builder.setLevelXP(list);
+//		List<Long> list = new ArrayList<>();
+//		list = arg1.getNode("levelXP").getValue(ttla, list);
+//		builder.setLevelXP(list);
+		builder.setLevelXP(arg1.getNode("levelXP").getString("100*level"));
 		builder.setSkills(arg1.getNode("skills").getValue(ttls, new LinkedList<Skill>()));
 		return builder.build();
 	}

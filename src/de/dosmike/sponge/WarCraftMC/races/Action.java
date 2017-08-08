@@ -4,6 +4,8 @@ import java.text.ParseException;
 import java.util.Optional;
 
 import de.dosmike.sponge.WarCraftMC.WarCraft;
+import de.dosmike.sponge.WarCraftMC.catalogs.ResultProperty;
+import de.dosmike.sponge.WarCraftMC.catalogs.SkillResult;
 import de.dosmike.sponge.WarCraftMC.exceptions.ExecuteActionException;
 import de.dosmike.sponge.WarCraftMC.exceptions.PrepareSkillActionException;
 
@@ -18,19 +20,30 @@ public class Action {
 	//Output[]
 	Output[] outputs;
 	
-	public boolean fire(ActionData data) throws ExecuteActionException {
+	/** First checks if the trigger is fitting for this action, or returns empty<br>
+	 * Then it checks all conditions, if the conditions fail a result with SUCCESS property false will be returned<br>
+	 * If everything passes it will fire all outputs in order until the first output returns a SUCCESS property false
+	 * @return a skill result if this action was triggered */
+	public Optional<SkillResult> fire(ActionData data) throws ExecuteActionException {
 //		WarCraft.l(event+" vs "+data.getTrigger());
-		if (event != data.getTrigger()) return false;
-		boolean r=false;
+		if (event != data.getTrigger()) return Optional.empty();
+		SkillResult result = new SkillResult();
 		try {
 			if (!condition.isPresent() || condition.get().evaluate(data)) {
-				for (Output output : outputs) output.fire(data); r=true;
+				for (Output output : outputs) {
+					SkillResult r = output.fire(data, result);
+					result.filter(r, ResultProperty.SUCCESS);
+					if (r.get(ResultProperty.SUCCESS).contains(false)) { result.push(ResultProperty.SUCCESS, false); break; }
+				}
+			} else {
+				result.push(ResultProperty.SUCCESS, false);
 			}
 		} catch (Exception e) {
 			throw new ExecuteActionException("Could not execute action <<"+from+">>", e);
 //			e.printStackTrace();
 		}
-		return r;
+		/** remove all values for the outputs, they are no longer important and put our success result */
+		return Optional.of(result.push(ResultProperty.SUCCESS, true));
 	}
 	
 	private Action() {}

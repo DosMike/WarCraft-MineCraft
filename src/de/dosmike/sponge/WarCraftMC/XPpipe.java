@@ -37,7 +37,7 @@ public class XPpipe {
 			
 			int l = rd.getLevel();
 			int xp = (int)rd.getXP();
-			int maxxp = (int) (rd.getLevel()==rd.getRace().getMaxLevel() ? xp : rd.getRace().getLevelXp(l));
+			int maxxp = (int) (rd.getLevel()==rd.getRace().getMaxLevel() ? xp : rd.getLevelXp());
 			if (maxxp<1) maxxp=xp;
 			if (gottenXP.isPresent()) setXPbar(gottenXP.get(), l, (float)xp/(float)maxxp);
 			break;
@@ -72,7 +72,7 @@ public class XPpipe {
 			double progress = (double)xp/(double)maxxp;
 			int wcl = data.getLevel();
 			int wcxp = (int) data.getXP();
-			int wcmaxxp = (int) (data.getLevel()==data.getRace().getMaxLevel() ? xp : data.getRace().getLevelXp(wcl));
+			int wcmaxxp = (int) (data.getLevel()==data.getRace().getMaxLevel() ? xp : data.getLevelXp());
 			if (wcmaxxp<1) wcmaxxp=wcxp;
 			double wcprogress = (double)wcxp/(double)wcmaxxp;
 			
@@ -122,7 +122,7 @@ public class XPpipe {
 				RaceData rd = profile.getRaceData().get();
 				int l = rd.getLevel();
 				int xp = (int)rd.getXP();
-				int maxxp = (int) (rd.getLevel()==rd.getRace().getMaxLevel() ? xp : rd.getRace().getLevelXp(l));
+				int maxxp = (int) (rd.getLevel()==rd.getRace().getMaxLevel() ? xp : rd.getLevelXp());
 				if (maxxp<1) maxxp=xp;
 				setXPbar(player, l, (double)xp/(double)maxxp);
 			}

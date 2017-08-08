@@ -1,8 +1,11 @@
 package de.dosmike.sponge.WarCraftMC.races;
 
 import java.text.ParseException;
+import java.util.Optional;
 
 import de.dosmike.sponge.WarCraftMC.WarCraft;
+import de.dosmike.sponge.WarCraftMC.catalogs.ResultProperty;
+import de.dosmike.sponge.WarCraftMC.catalogs.SkillResult;
 import de.dosmike.sponge.WarCraftMC.exceptions.ActionBuilderException;
 import de.dosmike.sponge.WarCraftMC.exceptions.ExecuteSkillException;
 import de.dosmike.sponge.WarCraftMC.exceptions.PrepareSkillActionException;
@@ -11,7 +14,7 @@ public class Skill {
 	int skillNeeded;
 	String name;
 	String desc;
-	double cooldown;
+	String cooldown;
 	String id;
 	
 	double[][] parameter;
@@ -25,12 +28,16 @@ public class Skill {
 	public String getName() {
 		return name;
 	}
+	public String getID() {
+		return id;
+	}
 	public String getDescription() {
 		return desc;
 	}
-	/** returns the cooldown for this skill in seconds */
-	public double getCooldown() {
-		return cooldown;
+	/** returns the cooldown for this skill in milliseconds for a certain skilllevel
+	 * @param skillLevel replace level in the formula with */
+	public long getCooldown(int skillLevel) {
+		return (long)(Race.engine.evaluate(cooldown.replace("level", String.valueOf(skillLevel)))*1000);
 	}
 	/** return the maximum ammount of times you can level this skill */
 	public int getMaxSkill() {
@@ -42,18 +49,23 @@ public class Skill {
 		return parameter[forSkillLevel-1];
 	}
 	
-	/** FIRE SHOULD BE CALLED FROM PROFILE TO GENERATE A EVENT! DO NOT CALL
-	 * returns true if one or more actions were triggered, indicating this skill was used and should now be on cooldown */
-	public boolean fire(ActionData data) throws ExecuteSkillException {
-		boolean r = false;
+	/** FIRE SHOULD BE CALLED FROM PROFILE TO GENERATE A EVENT! DO NOT CALL<br>
+	 * Returns a skill result stripped of all SUCCESS properties for simplicity.<br>
+	 * For each action triggered without a SUCCESS property false in it's chain the COOLDOWN property will be added.*/
+	public SkillResult fire(ActionData data) throws ExecuteSkillException {
+		SkillResult result=new SkillResult();
 		try {
 			for (Action action : actions) {
-				if (action.fire(data))r=true;
+				Optional<SkillResult> r = action.fire(data);
+				if (r.isPresent()) {
+					if (!r.get().get(ResultProperty.SUCCESS).contains(false)) result.push(ResultProperty.COOLDOWN, true);
+					result.push(r.get());
+				}
 			}
 		} catch (Exception e) {
-			throw new ExecuteSkillException("Unable to cast skill \""+name+"\" with " +data, e);
+			throw new ExecuteSkillException("Unable to cast skill \""+id+"\" with " +data, e);
 		}
-		return r;
+		return result;
 	}
 	
 
@@ -70,7 +82,7 @@ public class Skill {
 			building.desc=desc;
 			return this;
 		}
-		public Builder setCooldown(double cooldown) {
+		public Builder setCooldown(String cooldown) {
 			building.cooldown=cooldown;
 			return this;
 		}
@@ -82,14 +94,14 @@ public class Skill {
 			building.skillNeeded = skillNeeded;
 			return this;
 		}
-		public Builder setActions(String... actions) {
+		public Builder setActions(String... actions) throws ActionBuilderException {
 			building.actions = new Action[actions.length];
 			for (int i = 0; i < actions.length; i++)
 				try {
 					WarCraft.l("  Parsing Action "+(i+1));
 					building.actions[i] = Action.fromString(actions[i]);
 				} catch (ParseException | PrepareSkillActionException e) {
-					new ActionBuilderException("Failed to put action "+i+" into Skill "+building.name, e).printStackTrace();
+					throw new ActionBuilderException("Failed to put action "+i+" into Skill "+building.name, e);
 				}
 			return this;
 		}

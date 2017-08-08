@@ -7,18 +7,18 @@ import org.spongepowered.api.effect.potion.PotionEffect;
 import org.spongepowered.api.effect.potion.PotionEffectTypes;
 import org.spongepowered.api.entity.living.Living;
 
-public class wceInvisibility implements wcEffect {
+public class wceJumpboost implements wcEffect {
 
 	private final PotionEffect fx;
 	private final double duration;
-	public wceInvisibility(double duration) {
+	public wceJumpboost(double duration, double amount) {
 		this.duration=duration;
 		PotionEffect.Builder fcb = PotionEffect.builder(); fcb
-		.amplifier(1)
+		.amplifier((int)amount)
 		.duration((int)(Math.ceil(duration)+1)*20) //with some buffer, we strip it later again
 		//as fas as i understand particles can hide particles and ambient would make visible particles half transparent? 
 		.particles(true)
-		.potionType(PotionEffectTypes.INVISIBILITY);
+		.potionType(PotionEffectTypes.JUMP_BOOST);
 		fx = fcb.build();
 	}
 	
@@ -39,8 +39,6 @@ public class wceInvisibility implements wcEffect {
 
 	@Override
 	public void onApply(Living entity) {
-//		WarCraft.l(entity + " hidden for " + duration+"s");
-//		entity.getWorld().playSound(SoundTypes.ENTITY_ENDERMEN_TELEPORT, SoundCategories.MASTER, entity.getLocation().getPosition(), 1.0);
 		Optional<PotionEffectData> perhaps = entity.getOrCreate(PotionEffectData.class); 
 		if (!perhaps.isPresent()) return;
 		PotionEffectData data = perhaps.get();

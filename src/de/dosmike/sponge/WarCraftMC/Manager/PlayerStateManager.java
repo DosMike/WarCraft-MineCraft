@@ -27,7 +27,7 @@ public class PlayerStateManager {
 			UUID id = p.getUniqueId();
 			if (disconnecting.contains(id)) continue;
 			online.add(id);
-			boolean now = pro.get().isActive();
+			boolean now = pro.get().isActive(p);
 			boolean was = active.contains(id);
 			
 			if (now && !was) {

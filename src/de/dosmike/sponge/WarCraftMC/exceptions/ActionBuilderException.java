@@ -1,5 +1,6 @@
 package de.dosmike.sponge.WarCraftMC.exceptions;
 
+@SuppressWarnings("serial")
 public class ActionBuilderException extends Exception {
 	public ActionBuilderException() {
 		super();

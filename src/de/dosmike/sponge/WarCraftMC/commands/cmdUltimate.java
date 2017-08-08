@@ -31,7 +31,7 @@ public class cmdUltimate implements CommandExecutor {
 		ActionData data = ActionData.builder(Trigger.ULTIMATE)
 				.setSelf((Player)src)
 				.build();
-		if (profile.isActive()) profile.getRaceData().get().fire(profile, data);
+		profile.getRaceData().get().fire(profile, data);
 		return CommandResult.success();
 	}
 	

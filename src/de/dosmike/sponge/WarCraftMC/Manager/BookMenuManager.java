@@ -134,7 +134,7 @@ public class BookMenuManager {
 		Text.Builder page1 = Text.builder();
 		page1.append(Text.of(TextColors.DARK_GREEN, data.getRace().getName(), TextColors.RESET, "\n  Lvl ", data.getLevel()));
 		if (data.getLevel()==data.getRace().getMaxLevel())
-			page1.append(Text.of(TextColors.DARK_RED, "  Max Lvl\n\n"));
+			page1.append(Text.of(TextColors.DARK_RED, "  Max Lvl", TextColors.RESET, "\n\n"));
 		else
 			page1.append(Text.of(TextColors.DARK_RED, " ", data.getXP(), "/", data.getRace().getLevelXp(data.getLevel()), TextColors.RESET, "XP\n"));
 		page1.append(Text.of("You can spend ", TextColors.DARK_RED, data.getSkillPoints(), TextColors.RESET, "SP\n\n"));

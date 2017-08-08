@@ -3,12 +3,15 @@ package de.dosmike.sponge.WarCraftMC;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.event.cause.NamedCause;
 
 import com.google.common.reflect.TypeToken;
 
+import de.dosmike.sponge.WarCraftMC.catalogs.ResultProperty;
+import de.dosmike.sponge.WarCraftMC.catalogs.SkillResult;
 import de.dosmike.sponge.WarCraftMC.events.EventCause;
 import de.dosmike.sponge.WarCraftMC.events.UseSkillEvent;
 import de.dosmike.sponge.WarCraftMC.races.ActionData;
@@ -24,6 +27,11 @@ public class RaceData {
 	int raceLevel;
 	long xp; //xp the player has within this race
 	long[] skillCooldown; //timestamp until skill is on cooldown
+	long levelXP=-1;
+	/** returns a cached amount required to level up to reduce calculations */
+	public long getLevelXp() {
+		return (levelXP<0?(levelXP=race.getLevelXp(raceLevel)):levelXP);
+	}
 	
 	public Race getRace() {
 		return race;
@@ -45,7 +53,8 @@ public class RaceData {
 	 * @param takeXP set to false to not take xp in case a admin command want's to give bonus levels or something*/
 	public void levelUp(boolean takeXP) {
 		if (raceLevel >= race.getMaxLevel()) return;
-		xp -= race.getLevelXp(raceLevel);
+		xp -= getLevelXp();
+		levelXP=-1;// levelXp has to be updated
 		if (xp<0)xp=0;
 		raceLevel++;
 		skillPoints++; //make the amount of skillpoints per level a config value? this would mess with the perk system tho
@@ -61,8 +70,8 @@ public class RaceData {
 		this.xp += xp;
 		
 		int levels = 0;
-		long test = this.xp;
-		while ((raceLevel+levels)<race.getMaxLevel() && test >= race.getLevelXp(raceLevel+levels)) { test -= race.getLevelXp(raceLevel+levels); levels++; }
+		long test = this.xp; long tmp;
+		while ((raceLevel+levels)<race.getMaxLevel() && test >= (tmp=race.getLevelXp(raceLevel+levels))) { test -= tmp; levels++; }
 		return levels;
 	}
 	/** required for xp leech
@@ -92,8 +101,6 @@ public class RaceData {
 		result.race = race;
 		result.skillProgress = new int[race.getSkillCount()];
 		result.skillCooldown = new long[race.getSkillCount()];
-		for (int i=0;i<result.skillCooldown.length;i++) result.skillCooldown[i]=System.currentTimeMillis()+(long)(race.getSkill(i).getCooldown()*1000);
-		
 		try {
 			ConfigurationNode root = cfg.getNode(race.getID());
 			result.skillProgress = toArray(root.getNode("skillProgress").getValue(ttli), new int[race.getSkillCount()]);
@@ -106,6 +113,7 @@ public class RaceData {
 			result.xp=0;
 			result.raceLevel=1;
 		}
+		for (int i=0;i<result.skillCooldown.length;i++) result.skillCooldown[i]=System.currentTimeMillis()+(long)(race.getSkill(i).getCooldown(result.skillProgress[i]));
 		return result;
 	}
 	 /** called when the player switches races or disconnects or the plugin will be halted <br>
@@ -132,12 +140,13 @@ public class RaceData {
 		List<Integer> result = new ArrayList<>(); for (int i : list) result.add(i); return result;
 	}
 	
-	/** fire these actionData for each skill */
-	public void fire(Profile link, ActionData baseData) {
-		if (!link.isActive()) return;
+	/** Returns a SkillResult if the profile is active containing properties for all fired skills */
+	public Optional<SkillResult> fire(Profile link, ActionData baseData) {
+		if (!link.isActive(Sponge.getServer().getPlayer(link.playerID).get())) return Optional.empty();
 		EventCause cause = new EventCause(Sponge.getServer().getPlayer(link.getPlayerID()).get());
 		if (baseData.getTarget().isPresent()) cause.bake(NamedCause.HIT_TARGET, baseData.getTarget().get());
 		long now = System.currentTimeMillis();
+		SkillResult result = new SkillResult();
 		for (int i=0; i < getRace().getSkillCount(); i++) {
 			if (skillProgress[i]<=0) continue;
 			if (skillCooldown[i]> now) continue;
@@ -147,13 +156,19 @@ public class RaceData {
 			UseSkillEvent event = new UseSkillEvent(link, skill, baseData, cause.get());
 			/* copy this */Sponge.getEventManager().post(event); if (event.isCancelled()) continue;/* pasta that */
 			try {
-				if (skill.fire(
+				SkillResult tmp = skill.fire(
 					ActionData.builder(baseData).setParameters(skill.getParameters(skillProgress[i])).build()
-					))
-					skillCooldown[i]=System.currentTimeMillis()+(long)(skill.getCooldown()*1000);
+					);
+				if (tmp.get(ResultProperty.COOLDOWN).contains(true))
+					skillCooldown[i]=System.currentTimeMillis()+ skill.getCooldown(skillProgress[i]); //(long)(skill.getCooldown()*1000);
+				result.push(tmp);
 			} catch (Exception e) {
-				throw new RuntimeException("Race \""+race.getID().toUpperCase()+"\" seems to be broken:", e);
+//				e.printStackTrace();
+				StringBuilder simpleTrace = new StringBuilder("Race \""+race.getID().toUpperCase()+"\" seems to be broken:");
+				wcUtils.superSimpleTrace(simpleTrace, e, "\n");
+				System.err.println(simpleTrace.toString());
 			}
 		}
+		return Optional.of(result);
 	}
 }
