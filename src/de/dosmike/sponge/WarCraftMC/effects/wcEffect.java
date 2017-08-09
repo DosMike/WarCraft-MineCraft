@@ -16,8 +16,8 @@ public interface wcEffect {
 	
 	/** do something with the entity when the effect get's added */
 	public void onApply(Living entity);
-	/** should be called around every 50 ms */
-	public void onTick(Living entity);
+	/** should be called around every 50 ms, dt will give you the exact ms since the last tick */
+	public void onTick(Living entity, int dt);
 	/** remove for example applied potion effects from the entity.<br>
 	 * This may never be called on a effect instance if it's extended by a effect of the same class */
 	public void onRemove(Living entity);

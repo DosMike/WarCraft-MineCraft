@@ -9,7 +9,6 @@ import org.spongepowered.api.event.cause.entity.damage.DamageTypes;
 import org.spongepowered.api.event.cause.entity.damage.source.EntityDamageSource;
 
 import de.dosmike.sponge.WarCraftMC.ManaPipe;
-import de.dosmike.sponge.WarCraftMC.WarCraft;
 import de.dosmike.sponge.WarCraftMC.wcSkill;
 import de.dosmike.sponge.WarCraftMC.catalogs.ResultProperty;
 import de.dosmike.sponge.WarCraftMC.catalogs.SkillResult;
@@ -31,7 +30,7 @@ public class StatusSkills {
 	@wcSkill("setHealth")
 		public static SkillResult skillSetHealth(Living source, Double amount) {
 	//		if (source instanceof Player) {
-				WarCraft.l("Giving "+source+" "+amount+"hp");
+//				WarCraft.l("Giving "+source+" "+amount+"hp");
 				Player p = (Player) source;
 				p.offer(Keys.MAX_HEALTH, amount>20.0?amount:20.0); //gets reset on next respawn
 				p.offer(Keys.HEALTH, amount);

@@ -27,6 +27,7 @@ import org.spongepowered.api.text.format.TextColors;
 import de.dosmike.sponge.WarCraftMC.Manager.DamageManager;
 import de.dosmike.sponge.WarCraftMC.Manager.NextSpawnActionManager;
 import de.dosmike.sponge.WarCraftMC.Manager.PlayerStateManager;
+import de.dosmike.sponge.WarCraftMC.Manager.SkillManager;
 import de.dosmike.sponge.WarCraftMC.Manager.StatusEffectManager;
 import de.dosmike.sponge.WarCraftMC.catalogs.ResultProperty;
 import de.dosmike.sponge.WarCraftMC.catalogs.SkillResult;
@@ -40,10 +41,12 @@ public class SpongeEventListeners {
 
 	@Listener
 	public void onPlayerJoin(ClientConnectionEvent.Join event) {
-		WarCraft.l("Loading profile for " + event.getTargetEntity().getName());
+//		WarCraft.l("Loading profile for " + event.getTargetEntity().getName());
 		Profile p = Profile.loadOrCreate(event.getTargetEntity());
 		if (p.getRaceData().isPresent())
 			WarCraft.tell(event.getTargetEntity(), "Wellcom back, ", TextColors.GOLD, event.getTargetEntity().getName(), Text.builder(" of the ").color(TextColors.RESET).build(), p.getRaceData().get().getRace().getName());
+		
+		restoreKeyedDefaults(event.getTargetEntity());
 	}
 	
 	@Listener
@@ -53,6 +56,12 @@ public class SpongeEventListeners {
 		PlayerStateManager.forceOut(event.getTargetEntity());
 		Profile.loadOrCreate(event.getTargetEntity()).saveAndUnload();
 		ManaPipe.dropPlayer(event.getTargetEntity());
+	}
+	
+	//restore manipulated player data, currently there's not other good way
+	public static void restoreKeyedDefaults(Player player) {
+		player.offer(Keys.WALKING_SPEED, 0.1);
+		player.offer(Keys.MAX_HEALTH, 20.0);
 	}
 	
 	@Listener
@@ -169,11 +178,26 @@ public class SpongeEventListeners {
 //			event.setCancelled(true);
 //	}
 	
+//	@SuppressWarnings("unchecked")
 	@Listener
-	public void onPickupItem(CollideEntityEvent event) {
+	public void onColideEntity(CollideEntityEvent event) {
 		Optional<Player> target = event.getCause().first(Player.class);
 		if (!target.isPresent()) return;
 		
+		////nade collision... cinda
+		for (Entity e : event.getEntities()) if (SkillManager.nades.containsKey(e)) {
+//			WarCraft.l("Carefull with that!");
+			event.setCancelled(true);
+		}
+//		Set<UUID> livings = new HashSet<>();
+//		for (Entity e : event.filterEntities((entity)->(entity instanceof Living)) ) {
+//			livings.add(((Living)e).getUniqueId());
+//		}
+//		List<? extends Entity> nades;
+//		(nades = (event.filterEntities((entity)-> ((entity instanceof Item) && SkillManager.nades.containsKey(entity)))) )
+//			.forEach((nade)->{if (!livings.contains(nade.getCreator().orElse(null))) nade.setVelocity(Vector3d.ZERO);});
+		
+		////  try to merge xp systems
 //		@SuppressWarnings("unchecked") //filtering for exp orbs, so they have to be
 //		List<? extends Entity> entityItems = (List<? extends Entity>) event.filterEntities(entity -> entity.getType().equals(EntityTypes.EXPERIENCE_ORB));
 //		int totalXP = 0;
@@ -185,7 +209,7 @@ public class SpongeEventListeners {
 //		if (XPpipe.processVanillaXP(target.get(), Profile.loadOrCreate(target.get()), event.getCause()))
 //			event.setCancelled(true);
 		
-		//can't figure xp orbs... so let's just spam that function, it'ss get the xp... somehow ;D
+		//can't figure xp orbs... so let's just spam that function, it gets the xp... somehow ;D
 		XPpipe.processVanillaXP(target.get(), Profile.loadOrCreate(target.get()), event.getCause());
 	}
 	

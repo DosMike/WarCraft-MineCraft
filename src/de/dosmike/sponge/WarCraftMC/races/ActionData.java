@@ -17,7 +17,7 @@ public class ActionData {
 	Optional<ItemStack> item=Optional.empty();
 	Optional<Double> damage=Optional.empty();
 	double[] parammap=new double[0];
-	
+	boolean cooldown=false;
 	
 	public static Builder builder(Trigger trigger) {
 		return new Builder(trigger);
@@ -60,6 +60,10 @@ public class ActionData {
 			building.parammap=parameter;
 			return this;
 		}
+		public Builder setOnCooldown(boolean oncooldown) {
+			building.cooldown=oncooldown;
+			return this;
+		}
 		public ActionData build() {
 			return building;
 		}
@@ -87,6 +91,10 @@ public class ActionData {
 
 	public double[] getParammap() {
 		return parammap;
+	}
+	
+	public boolean isOnCooldown() {
+		return cooldown;
 	}
 	
 	@Override

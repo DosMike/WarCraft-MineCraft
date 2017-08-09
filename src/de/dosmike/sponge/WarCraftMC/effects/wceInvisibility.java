@@ -49,7 +49,7 @@ public class wceInvisibility implements wcEffect {
 	}
 
 	@Override
-	public void onTick(Living entity) {
+	public void onTick(Living entity, int dt) {
 		
 	}
 

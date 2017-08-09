@@ -12,6 +12,8 @@ import org.spongepowered.api.boss.ServerBossBar;
 import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.entity.living.player.gamemode.GameMode;
+import org.spongepowered.api.entity.living.player.gamemode.GameModes;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.text.Text;
@@ -59,7 +61,7 @@ public class ManaPipe {
 	public static int getMana(Player player) {
 		if (mode==Mode.FOODLEVEL) {
 			int val = player.get(Keys.FOOD_LEVEL).get();
-			WarCraft.l(player.getName()+" has FOOD_LEVEL "+val);
+//			WarCraft.l(player.getName()+" has FOOD_LEVEL "+val);
 			return val;
 		}
 		if (!virtualMax.containsKey(player.getUniqueId())) resetMana(player);
@@ -89,6 +91,9 @@ public class ManaPipe {
 	}
 	public static void subMana(Player player, double amount) {
 		if (mode!=Mode.BOSSBAR) return;
+		//like with health and foodlevel i do not want this to drop while in creative - for more fun ;D
+		GameMode gm = player.get(Keys.GAME_MODE).get();
+		if (gm.equals(GameModes.CREATIVE) || gm.equals(GameModes.SPECTATOR)) return;
 		if (!virtualMax.containsKey(player.getUniqueId())) resetMana(player);
 		double mana = virtualMana.get(player.getUniqueId())-amount;
 		int manamax = virtualMax.get(player.getUniqueId());

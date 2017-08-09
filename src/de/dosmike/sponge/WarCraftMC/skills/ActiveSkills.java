@@ -6,13 +6,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
-import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.effect.sound.SoundCategories;
 import org.spongepowered.api.effect.sound.SoundTypes;
 import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.entity.living.Living;
 import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.entity.projectile.explosive.fireball.Fireball;
 import org.spongepowered.api.event.cause.NamedCause;
 import org.spongepowered.api.scoreboard.Team;
 import org.spongepowered.api.util.Direction;
@@ -21,8 +19,8 @@ import org.spongepowered.api.util.blockray.BlockRayHit;
 import org.spongepowered.api.world.World;
 import org.spongepowered.api.world.explosion.Explosion;
 
-import de.dosmike.sponge.WarCraftMC.WarCraft;
 import de.dosmike.sponge.WarCraftMC.wcSkill;
+import de.dosmike.sponge.WarCraftMC.Manager.SkillManager;
 import de.dosmike.sponge.WarCraftMC.Manager.StatusEffectManager;
 import de.dosmike.sponge.WarCraftMC.catalogs.ResultProperty;
 import de.dosmike.sponge.WarCraftMC.catalogs.SkillResult;
@@ -131,16 +129,19 @@ public class ActiveSkills {
 		return new SkillResult().push(ResultProperty.SUCCESS, true);
 	}
 	
-	@wcSkill("fireball")
-	public static SkillResult skillFireball(Living source, Double speed) {
+	@wcSkill("thrownade") //Fireballs are not shootable, use sub interface (see jdocs)
+	public static SkillResult skillFireball(Living source, Double speed, Double damage) {
 		if (!(source instanceof Player)) return new SkillResult().push(ResultProperty.SUCCESS, true);
-		Optional<Fireball> maybe = ((Player)source).launchProjectile(Fireball.class, source.getHeadRotation().mul(speed));
-		if (!maybe.isPresent()) {
-			if (source instanceof Player) WarCraft.tell((Player)source, "FIREBALL! ... looks like this is not yet implemented :<");
-			return new SkillResult().push(ResultProperty.SUCCESS, false);
-		}
-		Fireball fireball = maybe.get();
-		fireball.offer(Keys.HAS_GRAVITY, true);
+//		Optional<LargeFireball> maybe = ((Player)source).launchProjectile(LargeFireball.class, source.getHeadRotation().mul(speed/100.0));
+//		if (!maybe.isPresent()) {
+//			if (source instanceof Player) WarCraft.tell((Player)source, "FIREBALL! ... looks like this is not yet implemented :<");
+//			return new SkillResult().push(ResultProperty.SUCCESS, false);
+//		}
+//		LargeFireball fireball = maybe.get();
+//		fireball.setVelocity(source.getHeadRotation().mul(speed/100.0));
+////		fireball.offer(Keys.HAS_GRAVITY, true);
+		
+		SkillManager.thorwNade(source, speed, damage.floatValue());
 		
 		return new SkillResult().push(ResultProperty.SUCCESS, true);
 	}

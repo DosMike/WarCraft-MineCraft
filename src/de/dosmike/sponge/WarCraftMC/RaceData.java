@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.cause.NamedCause;
 
 import com.google.common.reflect.TypeToken;
@@ -143,21 +144,25 @@ public class RaceData {
 	/** Returns a SkillResult if the profile is active containing properties for all fired skills */
 	public Optional<SkillResult> fire(Profile link, ActionData baseData) {
 		if (!link.isActive(Sponge.getServer().getPlayer(link.playerID).get())) return Optional.empty();
-		EventCause cause = new EventCause(Sponge.getServer().getPlayer(link.getPlayerID()).get());
+		Player p = Sponge.getServer().getPlayer(link.getPlayerID()).get();
+		EventCause cause = new EventCause(p);
 		if (baseData.getTarget().isPresent()) cause.bake(NamedCause.HIT_TARGET, baseData.getTarget().get());
 		long now = System.currentTimeMillis();
 		SkillResult result = new SkillResult();
 		for (int i=0; i < getRace().getSkillCount(); i++) {
 			if (skillProgress[i]<=0) continue;
-			if (skillCooldown[i]> now) continue;
 			Skill skill = getRace().getSkill(i);
+			if (skillCooldown[i]> now) continue;
 //			WarCraft.l("Go: "+skill.getName());
 
 			UseSkillEvent event = new UseSkillEvent(link, skill, baseData, cause.get());
 			/* copy this */Sponge.getEventManager().post(event); if (event.isCancelled()) continue;/* pasta that */
 			try {
 				SkillResult tmp = skill.fire(
-					ActionData.builder(baseData).setParameters(skill.getParameters(skillProgress[i])).build()
+					ActionData.builder(baseData)
+						.setParameters(skill.getParameters(skillProgress[i]))
+						.setOnCooldown(skillCooldown[i]>now)
+						.build()
 					);
 				if (tmp.get(ResultProperty.COOLDOWN).contains(true))
 					skillCooldown[i]=System.currentTimeMillis()+ skill.getCooldown(skillProgress[i]); //(long)(skill.getCooldown()*1000);

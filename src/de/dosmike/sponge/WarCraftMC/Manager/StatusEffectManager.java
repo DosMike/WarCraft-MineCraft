@@ -37,8 +37,10 @@ public class StatusEffectManager {
 		
 		active.put(at, fxs);
 	}
+	private static long lasttick=0l;
 	public static void tick() {
-		long now = System.currentTimeMillis();
+		if (lasttick==0l) lasttick=System.currentTimeMillis();
+		long now = System.currentTimeMillis(); int dt=(int) (now-lasttick);
 		Set<UUID> rem = new HashSet<>();
 		for (Entry<UUID, Set<EffectHolder>> efx : active.entrySet()) {
 			Set<EffectHolder> ehs = efx.getValue();
@@ -52,13 +54,14 @@ public class StatusEffectManager {
 					if (!meh.isLoaded() || meh.isRemoved() || meh.get(Keys.HEALTH).orElse(0.0)<=0) { //not loaded or dieded
 						eh.fx.onRemove(eh.target);
 						ded.add(eh);
-					} else eh.fx.onTick(eh.target);
+					} else eh.fx.onTick(eh.target, dt);
 				}
 			}
 			ehs.removeAll(ded);
 			if (ehs.isEmpty()) rem.add(efx.getKey());
 			else active.put(efx.getKey(), ehs);
 		}
+		lasttick=now;
 	}
 	public static void remove(Living entity, Class<? extends wcEffect> effect) {
 		Set<UUID> rem = new HashSet<>();

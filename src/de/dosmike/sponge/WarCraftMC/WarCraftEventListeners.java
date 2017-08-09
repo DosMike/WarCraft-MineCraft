@@ -47,16 +47,18 @@ public class WarCraftEventListeners {
 			if (!event.getPlayer().isPresent())
 				WarCraft.w("We lost a player to space-time, effect could not be stripped on profile deactivate");
 			else {
-				WarCraft.l(event.getPlayer().get() + " stopped playing WarCraft");
-				NextSpawnActionManager.removeAll(event.getPlayer().get());
+//				WarCraft.l(event.getPlayer().get() + " stopped playing WarCraft");
+//				NextSpawnActionManager.removeAll(event.getPlayer().get());
 				StatusEffectManager.remove(event.getPlayer().get(), wcEffect.class); //remove all effects
 				Profile profile = event.getWarCraftProfile(); //Profile.loadOrCreate(event.getPlayer().get());
 				XPpipe.restoreVanilla(event.getPlayer().get(), profile);
+				SpongeEventListeners.restoreKeyedDefaults(event.getPlayer().get());
 				profile.saveAndUnload();
 				ManaPipe.dropPlayer(event.getPlayer().get());
 			}
 		} else {
-			WarCraft.l(event.getPlayer().get() + " is now playing WarCraft");
+			NextSpawnActionManager.onSpawn(event.getPlayer().get());
+//			WarCraft.l(event.getPlayer().get() + " is now playing WarCraft");
 			//treat as if player spawned
 			XPpipe.archiveVanilla(event.getPlayer().get(), event.getWarCraftProfile());
 			ActionData data = ActionData.builder(Trigger.ONSPAWN)

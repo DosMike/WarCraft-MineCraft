@@ -28,6 +28,7 @@ import com.google.inject.Inject;
 
 import de.dosmike.sponge.WarCraftMC.Manager.PlayerStateManager;
 import de.dosmike.sponge.WarCraftMC.Manager.RaceManager;
+import de.dosmike.sponge.WarCraftMC.Manager.SkillManager;
 import de.dosmike.sponge.WarCraftMC.Manager.StatusEffectManager;
 import de.dosmike.sponge.WarCraftMC.commands.CommandRegister;
 import de.dosmike.sponge.WarCraftMC.events.EventCause;
@@ -118,6 +119,7 @@ public class WarCraft {
 				long timer = System.currentTimeMillis();
 				
 				StatusEffectManager.tick();
+				SkillManager.nadeTick();
 				
 				timer = System.currentTimeMillis()-timer;
 				if (timer>50) WarCraft.w("The plugin is running slow - Event timer took "+timer+"ms!");

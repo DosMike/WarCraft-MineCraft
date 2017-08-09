@@ -10,6 +10,7 @@ import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.entity.living.player.Player;
 
 import de.dosmike.sponge.WarCraftMC.Profile;
+import de.dosmike.sponge.WarCraftMC.SpongeEventListeners;
 import de.dosmike.sponge.WarCraftMC.events.EventCause;
 import de.dosmike.sponge.WarCraftMC.events.ProfileStateChangeEvent;
 
@@ -42,6 +43,7 @@ public class PlayerStateManager {
 		disconnecting.retainAll(online);
 	}
 	public static void forceOut(Player player) {
+		SpongeEventListeners.restoreKeyedDefaults(player);
 		disconnecting.add(player.getUniqueId());
 		active.remove(player.getUniqueId());
 		Optional<Profile> pro = Profile.getIfOnline(player.getUniqueId());

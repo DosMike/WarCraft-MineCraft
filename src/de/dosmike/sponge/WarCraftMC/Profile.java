@@ -6,7 +6,10 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.entity.living.player.gamemode.GameMode;
+import org.spongepowered.api.entity.living.player.gamemode.GameModes;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.cause.NamedCause;
 import org.spongepowered.api.text.Text;
@@ -43,6 +46,8 @@ public class Profile {
 	 * <li> Does the player have permissions to take part? */
 	public boolean isActive(Player player) {
 		if (racedata==null) return false;
+		GameMode gm = player.get(Keys.GAME_MODE).get();
+		if (gm.equals(GameModes.SPECTATOR)) return false;
 		if (WarCraft.activePermission!=null && !player.hasPermission(WarCraft.activePermission)) return false;
 		if (WarCraft.inactiveWorlds.contains(player.getWorld().getName())) return false;
 		return true;

@@ -3,7 +3,6 @@ package de.dosmike.sponge.WarCraftMC.races;
 import java.text.ParseException;
 import java.util.Optional;
 
-import de.dosmike.sponge.WarCraftMC.WarCraft;
 import de.dosmike.sponge.WarCraftMC.catalogs.ResultProperty;
 import de.dosmike.sponge.WarCraftMC.catalogs.SkillResult;
 import de.dosmike.sponge.WarCraftMC.exceptions.ActionBuilderException;
@@ -75,7 +74,7 @@ public class Skill {
 		
 		public Builder setName(String name) {
 			building.name=name;
-			WarCraft.l(" With Skill: "+name);
+//			WarCraft.l(" With Skill: "+name);
 			return this;
 		}
 		public Builder setDescription(String desc) {
@@ -98,7 +97,7 @@ public class Skill {
 			building.actions = new Action[actions.length];
 			for (int i = 0; i < actions.length; i++)
 				try {
-					WarCraft.l("  Parsing Action "+(i+1));
+//					WarCraft.l("  Parsing Action "+(i+1));
 					building.actions[i] = Action.fromString(actions[i]);
 				} catch (ParseException | PrepareSkillActionException e) {
 					throw new ActionBuilderException("Failed to put action "+i+" into Skill "+building.name, e);

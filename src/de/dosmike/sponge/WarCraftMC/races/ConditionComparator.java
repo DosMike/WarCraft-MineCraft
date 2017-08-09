@@ -5,7 +5,6 @@ import java.util.Optional;
 import org.spongepowered.api.entity.living.Living;
 import org.spongepowered.api.item.inventory.ItemStack;
 
-import de.dosmike.sponge.WarCraftMC.WarCraft;
 import de.dosmike.sponge.WarCraftMC.wcUtils;
 import de.dosmike.sponge.WarCraftMC.exceptions.ConditionFailedException;
 import de.dosmike.sponge.WarCraftMC.exceptions.PrepareConditionException;
@@ -45,12 +44,12 @@ public class ConditionComparator extends Condition {
 		switch (method) {
 		case ABOVE:
 			if (x instanceof Number && y instanceof Number) {
-				WarCraft.l("Compare ABOVE: "+x+", "+y);
+//				WarCraft.l("Compare ABOVE: "+x+", "+y);
 				return ((Number)x).doubleValue()>((Number)y).doubleValue();
 			} else throw new ConditionFailedException(String.format("Can't compare non-numerics with ABOVE: [%s] [%s]", x, y));
 		case BELOW:
 			if (x instanceof Number && y instanceof Number) {
-				WarCraft.l("Compare BELOW: "+x+", "+y);
+//				WarCraft.l("Compare BELOW: "+x+", "+y);
 				return ((Number)x).doubleValue()<((Number)y).doubleValue();
 			} else throw new ConditionFailedException(String.format("Can't compare non-numerics with BELOW: [%s] [%s]", x, y));
 		case TEAMMATE:

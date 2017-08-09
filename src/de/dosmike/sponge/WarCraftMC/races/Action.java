@@ -3,7 +3,6 @@ package de.dosmike.sponge.WarCraftMC.races;
 import java.text.ParseException;
 import java.util.Optional;
 
-import de.dosmike.sponge.WarCraftMC.WarCraft;
 import de.dosmike.sponge.WarCraftMC.catalogs.ResultProperty;
 import de.dosmike.sponge.WarCraftMC.catalogs.SkillResult;
 import de.dosmike.sponge.WarCraftMC.exceptions.ExecuteActionException;
@@ -69,7 +68,7 @@ public class Action {
 		
 		try {
 			result.event = Trigger.valueOf(event.toUpperCase());
-			WarCraft.l("  Trigger on "+event);
+//			WarCraft.l("  Trigger on "+event);
 			Condition cond = Condition.fromString(condition);
 			result.condition = cond==null?Optional.empty():Optional.of(cond);
 			result.outputs = new Output[outputs.length];

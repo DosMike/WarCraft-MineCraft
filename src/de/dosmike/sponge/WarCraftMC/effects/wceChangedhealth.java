@@ -32,7 +32,7 @@ public class wceChangedhealth implements wcEffect {
 	}
 
 	@Override
-	public void onTick(Living entity) {
+	public void onTick(Living entity, int dt) {
 		
 	}
 

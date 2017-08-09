@@ -34,7 +34,7 @@ public class wceRootLiving implements wcEffect {
 	}
 
 	@Override
-	public void onTick(Living entity) {
+	public void onTick(Living entity, int dt) {
 		
 	}
 

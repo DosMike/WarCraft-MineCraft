@@ -7,15 +7,14 @@ import de.dosmike.sponge.WarCraftMC.ManaPipe;
 
 public class wceRestoreMana implements wcEffect {
 
-	private final double manaPerTick;
+	private final double manaPerSecond;
 	private final double duration;
-	private final int amount;
-	private double manaToGive = 0.0;
-	private int manaGiven = 0;
-	public wceRestoreMana(double duration, int amount) {
+	private final double amount;
+	private double manaGiven = 0;
+	public wceRestoreMana(double duration, double amount) {
 		this.duration = duration;
 		this.amount = amount;
-		this.manaPerTick = 20*amount/duration;
+		this.manaPerSecond = (amount/duration);
 	}
 	
 	@Override
@@ -38,17 +37,16 @@ public class wceRestoreMana implements wcEffect {
 	}
 
 	@Override
-	public void onTick(Living entity) {
+	public void onTick(Living entity, int dt) {
 		if (manaGiven>=amount) return;
-		manaToGive+=manaPerTick;
-		int c = (int)manaToGive;
-		manaGiven+=c;
-		ManaPipe.addMana((Player)entity, c);
+		double manaPerTick=manaPerSecond*(double)dt/1000.0;
+		manaGiven+=manaPerTick;
+		ManaPipe.addMana((Player)entity, manaPerTick);
 	}
 
 	@Override
 	public void onRemove(Living entity) {
-		int rest = amount-manaGiven;
+		double rest = (double)amount-manaGiven;
 		if (rest>0) ManaPipe.addMana((Player)entity, rest);
 	}
 	
