@@ -20,8 +20,8 @@ public class ProfileStateChangeEvent extends AbstractEvent implements TargetWarC
     private final Optional<Player> player;
     private final boolean active;
 	
-    public ProfileStateChangeEvent(Profile target, boolean active, Cause cause) {
-		this.cause = cause;
+    public ProfileStateChangeEvent(Profile target, boolean active) {
+		this.cause = Sponge.getCauseStackManager().getCurrentCause();
 		this.target = target;
 		this.active = active;
 		this.player = Sponge.getServer().getPlayer(target.getPlayerID());

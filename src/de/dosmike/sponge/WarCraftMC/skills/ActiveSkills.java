@@ -6,12 +6,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
+import de.dosmike.sponge.WarCraftMC.effects.*;
+import org.spongepowered.api.Sponge;
+import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.effect.sound.SoundCategories;
 import org.spongepowered.api.effect.sound.SoundTypes;
 import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.entity.living.Living;
 import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.event.cause.NamedCause;
 import org.spongepowered.api.scoreboard.Team;
 import org.spongepowered.api.util.Direction;
 import org.spongepowered.api.util.blockray.BlockRay;
@@ -21,15 +23,9 @@ import org.spongepowered.api.world.explosion.Explosion;
 
 import de.dosmike.sponge.WarCraftMC.wcSkill;
 import de.dosmike.sponge.WarCraftMC.Manager.SkillManager;
-import de.dosmike.sponge.WarCraftMC.Manager.StatusEffectManager;
 import de.dosmike.sponge.WarCraftMC.catalogs.ResultProperty;
 import de.dosmike.sponge.WarCraftMC.catalogs.SkillResult;
-import de.dosmike.sponge.WarCraftMC.effects.wceDelayedLightning;
-import de.dosmike.sponge.WarCraftMC.effects.wceInvisibility;
-import de.dosmike.sponge.WarCraftMC.effects.wceJumpboost;
-import de.dosmike.sponge.WarCraftMC.effects.wceRootLiving;
-import de.dosmike.sponge.WarCraftMC.effects.wceSpeedboost;
-import de.dosmike.sponge.WarCraftMC.events.EventCause;
+import de.dosmike.sponge.mikestoolbox.living.BoxLiving;
 
 public class ActiveSkills {
 
@@ -52,13 +48,25 @@ public class ActiveSkills {
 
 	@wcSkill("Invisibility")
 	public static SkillResult skillInvisibility(Living source, Double duration) {
-		StatusEffectManager.add(source, new wceInvisibility(duration));
+		BoxLiving.addCustomEffect(source, new wceInvisibility(duration));
 		return new SkillResult().push(ResultProperty.SUCCESS, true);
 	}
 
 	@wcSkill("Freeze")
 	public static SkillResult skillFreeze(Living source, Double duration) {
-		StatusEffectManager.add(source, new wceRootLiving(duration));
+		BoxLiving.addCustomEffect(source, new wceRootLiving(duration));
+		return new SkillResult().push(ResultProperty.SUCCESS, true);
+	}
+
+	@wcSkill("Ignite")
+	public static SkillResult skillIgnite(Living target, Double seconds) {
+		target.offer(Keys.FIRE_TICKS, (int)(seconds*20));
+		return new SkillResult().push(ResultProperty.SUCCESS, true);
+	}
+
+	@wcSkill("slowHeal")
+	public static SkillResult skillRegenerateHealth(Living target, Integer healthPoints) {
+		BoxLiving.addCustomEffect(target, new wceSlowHeal(healthPoints));
 		return new SkillResult().push(ResultProperty.SUCCESS, true);
 	}
 
@@ -81,7 +89,8 @@ public class ActiveSkills {
 				.shouldDamageEntities(true)
 				.shouldPlaySmoke(false)
 				.canCauseFire(false)
-				.build(), new EventCause().bake(NamedCause.source(entity)).get());
+//				.build(), new EventCause().bake(NamedCause.source(entity)).get());
+				.build());
 		return new SkillResult().push(ResultProperty.SUCCESS, true);
 	}
 
@@ -102,7 +111,8 @@ public class ActiveSkills {
 		})); 
 		Collections.shuffle(nearby);
 		for (int i=0; i<nearby.size()&&i<targets; i++) {
-			StatusEffectManager.add((Living)nearby.get(i), new wceDelayedLightning((double)(i+1)*0.3, damage, new EventCause((Player)source).bake(NamedCause.hitTarget(nearby.get(i))).get()));
+//			StatusEffectManager.add((Living)nearby.get(i), new wceDelayedLightning((double)(i+1)*0.3, damage, new EventCause((Player)source).bake(NamedCause.hitTarget(nearby.get(i))).get()));
+			BoxLiving.addCustomEffect((Living)nearby.get(i), new wceDelayedLightning((double)(i+1)*0.3, damage, Sponge.getCauseStackManager().getCurrentCause()));
 		}
 		
 		return new SkillResult().push(ResultProperty.SUCCESS, !nearby.isEmpty());
@@ -112,20 +122,26 @@ public class ActiveSkills {
 	public static SkillResult skillAreaFreeze(Living source, Double range, Double duration) {
 		List<Entity> nearby = new LinkedList<>();
 		nearby.addAll(source.getNearbyEntities(range));
-		for (Entity e : nearby) if (e instanceof Living) StatusEffectManager.add((Living)e, new wceRootLiving(duration));
+		for (Entity e : nearby) if (e instanceof Living) BoxLiving.addCustomEffect((Living)e, new wceRootLiving(duration));
 		
 		return new SkillResult().push(ResultProperty.SUCCESS, true);
 	}
 
 	@wcSkill("speedboost")
 	public static SkillResult skillSpeedboost(Living entity, Double duration, Double amount) {
-		StatusEffectManager.add(entity, new wceSpeedboost(duration, amount));
+		BoxLiving.addCustomEffect(entity, new wceSpeedboost(duration, amount));
 		return new SkillResult().push(ResultProperty.SUCCESS, true);
 	}
 
 	@wcSkill("jumpboost")
 	public static SkillResult skillJumpboost(Living entity, Double duration, Double amount) {
-		StatusEffectManager.add(entity, new wceJumpboost(duration, amount));
+		BoxLiving.addCustomEffect(entity, new wceJumpboost(duration, amount));
+		return new SkillResult().push(ResultProperty.SUCCESS, true);
+	}
+	
+	@wcSkill("confuse")
+	public static SkillResult skillConfuse(Living entity, Double duration, Double amount) {
+		BoxLiving.addCustomEffect(entity, new wceConfusion(duration, amount));
 		return new SkillResult().push(ResultProperty.SUCCESS, true);
 	}
 	

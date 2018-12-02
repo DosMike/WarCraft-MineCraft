@@ -8,7 +8,9 @@ import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.cause.entity.damage.DamageTypes;
 import org.spongepowered.api.event.cause.entity.damage.source.EntityDamageSource;
 
-public class wceDelayedLightning implements wcEffect {
+import de.dosmike.sponge.mikestoolbox.living.CustomEffect;
+
+public class wceDelayedLightning implements CustomEffect {
 
 	private final double delay;
 	private final double damage;
@@ -46,10 +48,12 @@ public class wceDelayedLightning implements wcEffect {
 	public void onRemove(Living entity) {
 		Lightning bolt = (Lightning)entity.getWorld().createEntity(EntityTypes.LIGHTNING, entity.getLocation().getPosition());
 		bolt.setEffect(true); //no dmg?
-		entity.getWorld().spawnEntity(bolt, cause);
+//		entity.getWorld().spawnEntity(bolt, cause);
+		entity.getWorld().spawnEntity(bolt);
 		EntityDamageSource causeExtra = EntityDamageSource.builder().entity(cause.first(Player.class).get()).type(DamageTypes.CUSTOM).build();
 //		causeExtra.
-		entity.damage(damage, causeExtra, Cause.builder().from(cause).suggestNamed("Lightning", causeExtra).build());//apply custom ammount of damage
+//		entity.damage(damage, causeExtra, Cause.builder().from(cause).suggestNamed("Lightning", causeExtra).build());//apply custom ammount of damage
+		entity.damage(damage, causeExtra);//apply custom ammount of damage
 	}
 	
 }

@@ -7,7 +7,9 @@ import org.spongepowered.api.effect.potion.PotionEffect;
 import org.spongepowered.api.effect.potion.PotionEffectTypes;
 import org.spongepowered.api.entity.living.Living;
 
-public class wceJumpboost implements wcEffect {
+import de.dosmike.sponge.mikestoolbox.living.CustomEffect;
+
+public class wceJumpboost implements CustomEffect {
 
 	private final PotionEffect fx;
 	private final double duration;

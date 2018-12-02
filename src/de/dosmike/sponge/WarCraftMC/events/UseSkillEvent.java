@@ -20,8 +20,8 @@ public class UseSkillEvent extends AbstractEvent implements TargetWarCraftEvent,
 	private final Skill skill;
 	private final ActionData data;
 	
-    public UseSkillEvent(Profile target, Skill skill, ActionData data, Cause cause) {
-		this.cause = cause;
+    public UseSkillEvent(Profile target, Skill skill, ActionData data) {
+		this.cause = Sponge.getCauseStackManager().getCurrentCause();
 		this.target = target;
 		this.skill = skill;
 		this.data = data;

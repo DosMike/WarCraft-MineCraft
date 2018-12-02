@@ -91,13 +91,15 @@ public class BookMenuManager {
 		for (int i = 0; i < race.getSkillCount(); i++) {
 			Skill skill = race.getSkill(i);
 			if (skill.getSkillLevel()==0)
-				page1.append(
-						wcUtils.makeClickable(Text.of(TextColors.DARK_BLUE, skill.getName(), TextColors.BLUE, "\n  ", skill.getMaxSkill(), " Ranks\n"), "/spendskill "+(i+1))
-						.onHover(TextActions.showText(Text.of(skill.getDescription()))).build());
+				page1.append(Text.builder()
+						.append(Text.of(TextColors.DARK_BLUE, skill.getName(), TextColors.BLUE, "\n  ", skill.getMaxSkill(), " Ranks\n"))
+						.onHover(TextActions.showText(Text.of(skill.getDescription()))).build())
+						.build();
 			else
 				page1.append(Text.builder()
 						.append(Text.of(TextColors.DARK_GRAY, skill.getName(), "\n  Lvl ", skill.getSkillLevel(), ", ", skill.getMaxSkill(), " Ranks\n"))
-						.onHover(TextActions.showText(Text.of(skill.getDescription()))).build());
+						.onHover(TextActions.showText(Text.of(skill.getDescription())))
+						.build());
 		}
 		
 		page1.append(Text.of(TextColors.RESET, "[", wcUtils.makeClickable("Race List", "/racelist "+pagefrom).build(), TextColors.RESET, "]  [", 

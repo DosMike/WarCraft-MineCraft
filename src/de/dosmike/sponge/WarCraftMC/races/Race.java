@@ -79,17 +79,25 @@ public class Race {
 		public Builder setSkills(List<Skill> skills) {
 			building.skills = skills.toArray(new Skill[skills.size()]);
 			if (building.skills.length>0) for (int s=0;s<building.skills[0].actions.length;s++)
-				if (building.skills[0].actions[s].event == Trigger.ACTIVE_INVALID)
+				if (building.skills[0].actions[s].event == Trigger.ACTIVE_INVALID) {
 					building.skills[0].actions[s].event = Trigger.ACTIVE1;
+					building.skills[0].desc += "\n Command: /ability1";
+				}
 			if (building.skills.length>1) for (int s=0;s<building.skills[1].actions.length;s++)
-				if (building.skills[1].actions[s].event == Trigger.ACTIVE_INVALID)
+				if (building.skills[1].actions[s].event == Trigger.ACTIVE_INVALID) {
 					building.skills[1].actions[s].event = Trigger.ACTIVE2;
+					building.skills[1].desc += "\n Command: /ability2";
+				}
 			if (building.skills.length>2) for (int s=0;s<building.skills[2].actions.length;s++)
-				if (building.skills[2].actions[s].event == Trigger.ACTIVE_INVALID)
+				if (building.skills[2].actions[s].event == Trigger.ACTIVE_INVALID) {
 					building.skills[2].actions[s].event = Trigger.ACTIVE3;
+					building.skills[2].desc += "\n Command: /ability3";
+				}
 			if (building.skills.length>3) for (int s=0;s<building.skills[3].actions.length;s++)
-				if (building.skills[3].actions[s].event == Trigger.ACTIVE_INVALID)
+				if (building.skills[3].actions[s].event == Trigger.ACTIVE_INVALID) {
 					building.skills[3].actions[s].event = Trigger.ULTIMATE;
+					building.skills[3].desc += "\n Command: /ultimate";
+				}
 			if (building.skills.length>5) {
 				throw new RuntimeException("A race can't have more than 5 skills, the first 4 might use the active trigger, the 5th has to be passive!");
 			}

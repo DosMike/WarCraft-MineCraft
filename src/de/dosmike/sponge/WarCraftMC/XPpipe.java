@@ -1,16 +1,35 @@
 package de.dosmike.sponge.WarCraftMC;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.key.Keys;
+import org.spongepowered.api.entity.EntityType;
 import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.event.cause.Cause;
 
 import de.dosmike.sponge.WarCraftMC.events.GainXPEvent;
 import de.dosmike.sponge.WarCraftMC.events.LevelUpEvent;
+import ninja.leaping.configurate.ConfigurationNode;
+import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 
 public class XPpipe {
+	/**
+	 * This XP multiplier table can be used to exclude xp reward for e.g. peacful mobs
+	 * and make rewards for more duifficult mobs even higher
+	 */
+	static Map<EntityType, Double> xpMultipliers = new HashMap<>();
+	/** returns the global multiplier for xp * entity multiplier if applicable */
+	public static Double getMultiplierOr1(EntityType entity) {
+		if (xpMultipliers.containsKey(entity))
+			return globalMultiplier*xpMultipliers.get(entity);
+		else
+			return globalMultiplier;
+	}
+	/** this multiplier can be used for e.g. Double XP weekends and stuff */
+	static Double globalMultiplier = 1.0;
+	
 	/** what to do with the vanilla XP system.
 	 * <li>If you choose Ignore the WC XP and vanilla XP will be separated
 	 * <li>If you choose reflect the WC will not give XP, but the vanilla XP and level will be used to level your race.<br>
@@ -24,7 +43,7 @@ public class XPpipe {
 		return mode;
 	}
 	
-	public static void processWarCraftXP(Profile profile, long amount, Cause cause) {
+	public static void processWarCraftXP(Profile profile, long amount) {
 //		if (!profile.getRaceData().isPresent()) return; //is present, checked by caller
 		
 		switch (mode) {
@@ -33,7 +52,7 @@ public class XPpipe {
 			Optional<Player> gottenXP = Sponge.getServer().getPlayer(profile.getPlayerID());
 			RaceData rd = profile.getRaceData().get();
 			
-			profile.pushXP(amount, cause);
+			profile.pushXP(amount);
 			
 			int l = rd.getLevel();
 			int xp = (int)rd.getXP();
@@ -42,7 +61,7 @@ public class XPpipe {
 			if (gottenXP.isPresent()) setXPbar(gottenXP.get(), l, (float)xp/(float)maxxp);
 			break;
 		default:
-			profile.pushXP(amount, cause);
+			profile.pushXP(amount);
 		}
 	}
 	/*public static void processWarCraftLevel(Player player, Profile profile, int amount, Cause cause) {
@@ -61,7 +80,7 @@ public class XPpipe {
 	}*/
 	/** returns whether to cancel the original event 
 	 * @return true to cancel the original event */
-	public static boolean processVanillaXP(Player player, Profile profile, Cause cause) {
+	public static boolean processVanillaXP(Player player, Profile profile) {
 		if (!profile.getRaceData().isPresent()) return false;
 		RaceData data = profile.getRaceData().get();
 		switch(mode) {
@@ -91,11 +110,11 @@ public class XPpipe {
 			
 			//update WC profile data
 			if (txp>wcxp) {
-				GainXPEvent event = new GainXPEvent(profile, txp-wcxp, cause);
+				GainXPEvent event = new GainXPEvent(profile, txp-wcxp);
 				Sponge.getEventManager().post(event); if (event.isCancelled()) return true;
 			}
 			if (tl>wcl) {
-				LevelUpEvent event = new LevelUpEvent(profile, lu, cause);
+				LevelUpEvent event = new LevelUpEvent(profile, lu);
 				Sponge.getEventManager().post(event); if (event.isCancelled()) return true;
 			}
 			
@@ -105,7 +124,8 @@ public class XPpipe {
 			
 			break;
 		case REPLACE:
-			Optional<WarCraft> wcupdate = cause.first(WarCraft.class);
+//			Optional<WarCraft> wcupdate = cause.first(WarCraft.class);
+			Optional<WarCraft> wcupdate = Sponge.getCauseStackManager().getCurrentCause().first(WarCraft.class);
 			return !wcupdate.isPresent(); //replacing the system means we do not allow changes unless warcraft is the cause
 		default:
 		}
@@ -143,5 +163,21 @@ public class XPpipe {
 		int maxxp = player.get(Keys.EXPERIENCE_FROM_START_OF_LEVEL).get();
 		int newxp = (int) (Progress*maxxp);
 		player.offer(Keys.EXPERIENCE_SINCE_LEVEL, newxp<maxxp?newxp:maxxp-1);
+	}
+	
+	public static void loadConfig(ConfigurationNode node) throws ObjectMappingException {
+		mode = XPpipe.Mode.valueOf(node.getNode("XPHandling").getString("IGNORE"));
+		globalMultiplier = node.getNode("XPmultiplierGlobal").getDouble(1.0);
+		xpMultipliers.clear();
+		node.getNode("XPmultiplier").getChildrenMap().forEach((k,v)->{
+			Optional<EntityType> type = Sponge.getRegistry().getType(EntityType.class, (String)k);
+			if (!type.isPresent()) WarCraft.l("No such entityType: %s",(String)k);
+			else {
+				Double value = v.getDouble(1.0);
+				if (value < 0.0) value = 0.0;
+				xpMultipliers.put(type.get(), value);
+				WarCraft.l("XP multiplier for %s: %f", type.get().getId(), value);
+			}
+		});
 	}
 }

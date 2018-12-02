@@ -6,14 +6,11 @@ import java.util.List;
 import java.util.Optional;
 
 import org.spongepowered.api.Sponge;
-import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.event.cause.NamedCause;
 
 import com.google.common.reflect.TypeToken;
 
 import de.dosmike.sponge.WarCraftMC.catalogs.ResultProperty;
 import de.dosmike.sponge.WarCraftMC.catalogs.SkillResult;
-import de.dosmike.sponge.WarCraftMC.events.EventCause;
 import de.dosmike.sponge.WarCraftMC.events.UseSkillEvent;
 import de.dosmike.sponge.WarCraftMC.races.ActionData;
 import de.dosmike.sponge.WarCraftMC.races.Race;
@@ -144,9 +141,9 @@ public class RaceData {
 	/** Returns a SkillResult if the profile is active containing properties for all fired skills */
 	public Optional<SkillResult> fire(Profile link, ActionData baseData) {
 		if (!link.isActive(Sponge.getServer().getPlayer(link.playerID).get())) return Optional.empty();
-		Player p = Sponge.getServer().getPlayer(link.getPlayerID()).get();
-		EventCause cause = new EventCause(p);
-		if (baseData.getTarget().isPresent()) cause.bake(NamedCause.HIT_TARGET, baseData.getTarget().get());
+//		Player p = Sponge.getServer().getPlayer(link.getPlayerID()).get();
+//		EventCause cause = new EventCause(p);
+//		if (baseData.getTarget().isPresent()) cause.bake(NamedCause.HIT_TARGET, baseData.getTarget().get());
 		long now = System.currentTimeMillis();
 		SkillResult result = new SkillResult();
 		for (int i=0; i < getRace().getSkillCount(); i++) {
@@ -155,7 +152,7 @@ public class RaceData {
 			if (skillCooldown[i]> now) continue;
 //			WarCraft.l("Go: "+skill.getName());
 
-			UseSkillEvent event = new UseSkillEvent(link, skill, baseData, cause.get());
+			UseSkillEvent event = new UseSkillEvent(link, skill, baseData);
 			/* copy this */Sponge.getEventManager().post(event); if (event.isCancelled()) continue;/* pasta that */
 			try {
 				SkillResult tmp = skill.fire(

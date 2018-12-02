@@ -4,8 +4,9 @@ import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.entity.living.Living;
 
 import de.dosmike.sponge.WarCraftMC.WarCraft;
+import de.dosmike.sponge.mikestoolbox.living.CustomEffect;
 
-public class wceSpeedboost implements wcEffect {
+public class wceSpeedboost implements CustomEffect {
 
 //	private final PotionEffect fx;
 	private final double duration;

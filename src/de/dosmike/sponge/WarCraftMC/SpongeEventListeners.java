@@ -1,18 +1,14 @@
 package de.dosmike.sponge.WarCraftMC;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import org.spongepowered.api.data.key.Keys;
-import org.spongepowered.api.data.value.immutable.ImmutableValue;
 import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.entity.living.Living;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
-import org.spongepowered.api.event.cause.NamedCause;
-import org.spongepowered.api.event.cause.entity.damage.source.EntityDamageSource;
-import org.spongepowered.api.event.data.ChangeDataHolderEvent;
 import org.spongepowered.api.event.entity.CollideEntityEvent;
-import org.spongepowered.api.event.entity.DamageEntityEvent;
 import org.spongepowered.api.event.entity.DestructEntityEvent.Death;
 import org.spongepowered.api.event.entity.MoveEntityEvent;
 import org.spongepowered.api.event.entity.living.humanoid.player.RespawnPlayerEvent;
@@ -28,13 +24,15 @@ import de.dosmike.sponge.WarCraftMC.Manager.DamageManager;
 import de.dosmike.sponge.WarCraftMC.Manager.NextSpawnActionManager;
 import de.dosmike.sponge.WarCraftMC.Manager.PlayerStateManager;
 import de.dosmike.sponge.WarCraftMC.Manager.SkillManager;
-import de.dosmike.sponge.WarCraftMC.Manager.StatusEffectManager;
 import de.dosmike.sponge.WarCraftMC.catalogs.ResultProperty;
 import de.dosmike.sponge.WarCraftMC.catalogs.SkillResult;
-import de.dosmike.sponge.WarCraftMC.effects.wcEffect;
-import de.dosmike.sponge.WarCraftMC.events.EventCause;
+import de.dosmike.sponge.WarCraftMC.effects.wceRootLiving;
 import de.dosmike.sponge.WarCraftMC.races.Action.Trigger;
 import de.dosmike.sponge.WarCraftMC.races.ActionData;
+import de.dosmike.sponge.mikestoolbox.event.BoxCombatEvent;
+import de.dosmike.sponge.mikestoolbox.event.BoxJumpEvent;
+import de.dosmike.sponge.mikestoolbox.event.BoxSneakEvent;
+import de.dosmike.sponge.mikestoolbox.event.BoxSprintEvent;
 
 /** This will handle all events from players interacting with the worlds and other entities */
 public class SpongeEventListeners {
@@ -51,7 +49,7 @@ public class SpongeEventListeners {
 	
 	@Listener
 	public void onPlayerPart(ClientConnectionEvent.Disconnect event) {
-		StatusEffectManager.remove(event.getTargetEntity(), wcEffect.class); //remove all effects
+//		BoxLiving.removeCustomEffect(event.getTargetEntity(), CustomEffect.class); //remove all effects, now handled by mtb
 		NextSpawnActionManager.removeAll(event.getTargetEntity());
 		PlayerStateManager.forceOut(event.getTargetEntity());
 		Profile.loadOrCreate(event.getTargetEntity()).saveAndUnload();
@@ -60,35 +58,38 @@ public class SpongeEventListeners {
 	
 	//restore manipulated player data, currently there's not other good way
 	public static void restoreKeyedDefaults(Player player) {
-		player.offer(Keys.WALKING_SPEED, 0.1);
+		player.offer(Keys.WALKING_SPEED, 0.1); //for bukkit default was 0.2, for sponge default seems to be 0.1
 		player.offer(Keys.MAX_HEALTH, 20.0);
 	}
 	
 	@Listener
-	public void onAttackEntity(DamageEntityEvent event) {
-		//prepare interesting event data: source, target, damage
-		
-		if (event.isCancelled()) return;
-		if (!(event.getTargetEntity() instanceof Living)) return;
-		Living target = (Living)event.getTargetEntity();
-		Optional<EntityDamageSource> source = event.getCause().first(EntityDamageSource.class);
-		if (!source.isPresent()) return;
-		Entity attacker = source.get().getSource();
-		if (!(attacker instanceof Living)) { //resolve indirect damage source
-			if (!attacker.getCreator().isPresent()) return;
-			Optional<Entity> perhaps = target.getWorld().getEntity(attacker.getCreator().get()); //Sponge.getServer().getPlayer(attacker.getCreator().get());
-			if (!perhaps.isPresent() || !(perhaps.get() instanceof Living)) return;
-			attacker = perhaps.get();
+	public void onPlayerJump(BoxJumpEvent event) {
+		if (event.getTargetEntity() instanceof Player) {
+			Profile profile = Profile.loadOrCreate((Player)event.getTargetEntity());
+			ActionData data = ActionData.builder(Trigger.ONJUMP)
+					.setSelf((Player)event.getTargetEntity())
+					.build();
+//			Optional<SkillResult> result =
+					profile.getRaceData().get().fire(profile, data);
+//			if (result.isPresent()) {
+//				if (result.get().get(ResultProperty.CANCEL_ACTION).contains(true)) event.setCancelled(true);
+//			}
 		}
+	}
+	
+	@Listener
+	public void onCombatEntity(BoxCombatEvent event) {
+		Living attacker = event.getSourceEntity();
+		Living target = event.getTargetEntity();
 		if (attacker.equals(target)) return; //we won't give xp for being stupid and hurting yourself
-		if (StatusEffectManager.frozenEntities.contains(attacker.getUniqueId())) event.setCancelled(true);
-		double targetdamage = event.getFinalDamage();
+		if (wceRootLiving.frozenEntities.contains(attacker.getUniqueId())) event.setCancelled(true);
+		double targetdamage = event.getOriginal().getFinalDamage();
 		double targethealth = target.get(Keys.HEALTH).orElse(0.0);
 		if (targetdamage > targethealth) targetdamage = targethealth; //we won't give you more xp for killing a bat just because you used your op sword
 
 		//do something with the data:
 		//fx stuff
-		if (attacker instanceof Player && !event.willCauseDeath()) { //if even willCauseDeath this would just waste mana
+		if (attacker instanceof Player && !event.getOriginal().willCauseDeath()) { //if even willCauseDeath this would just waste mana
 			Profile profile = Profile.loadOrCreate((Player)attacker);
 			ActionData data = ActionData.builder(Trigger.ONATTACK)
 					.setSelf((Player)attacker)
@@ -101,7 +102,7 @@ public class SpongeEventListeners {
 				else {
 					Double modifier = 0.0;
 					for (Double mod : result.get().get(ResultProperty.MODIFY_DAMAGE)) modifier+=mod;
-					event.setBaseDamage(event.getBaseDamage()+modifier);
+					event.getOriginal().setBaseDamage(event.getOriginal().getBaseDamage()+modifier);
 				}
 			}
 		}
@@ -117,7 +118,7 @@ public class SpongeEventListeners {
 				if (result.get().get(ResultProperty.CANCEL_ACTION).contains(true)) event.setCancelled(true);
 			}
 		}
-		if (event.willCauseDeath() && target instanceof Player) {
+		if (event.getOriginal().willCauseDeath() && target instanceof Player) {
 			Profile profile = Profile.loadOrCreate((Player)target);
 			ActionData data = ActionData.builder(Trigger.ONDEATH)
 					.setSelf((Player)target)
@@ -137,23 +138,96 @@ public class SpongeEventListeners {
 		}
 	}
 	
+//	@Listener
+//	public void onAttackEntity(DamageEntityEvent event) {
+//		//prepare interesting event data: source, target, damage
+//		
+//		if (event.isCancelled()) return;
+//		if (!(event.getTargetEntity() instanceof Living)) return;
+//		Living target = (Living)event.getTargetEntity();
+//		Optional<EntityDamageSource> source = event.getCause().first(EntityDamageSource.class);
+//		if (!source.isPresent()) return;
+//		Entity attacker = source.get().getSource();
+//		if (!(attacker instanceof Living)) { //resolve indirect damage source
+//			if (!attacker.getCreator().isPresent()) return;
+//			Optional<Entity> perhaps = target.getWorld().getEntity(attacker.getCreator().get()); //Sponge.getServer().getPlayer(attacker.getCreator().get());
+//			if (!perhaps.isPresent() || !(perhaps.get() instanceof Living)) return;
+//			attacker = perhaps.get();
+//		}
+//		if (attacker.equals(target)) return; //we won't give xp for being stupid and hurting yourself
+//		if (wceRootLiving.frozenEntities.contains(attacker.getUniqueId())) event.setCancelled(true);
+//		double targetdamage = event.getFinalDamage();
+//		double targethealth = target.get(Keys.HEALTH).orElse(0.0);
+//		if (targetdamage > targethealth) targetdamage = targethealth; //we won't give you more xp for killing a bat just because you used your op sword
+//
+//		//do something with the data:
+//		//fx stuff
+//		if (attacker instanceof Player && !event.willCauseDeath()) { //if even willCauseDeath this would just waste mana
+//			Profile profile = Profile.loadOrCreate((Player)attacker);
+//			ActionData data = ActionData.builder(Trigger.ONATTACK)
+//					.setSelf((Player)attacker)
+//					.setOpponent(target)
+//					.setDamage(targetdamage)
+//					.build();
+//			Optional<SkillResult> result = profile.getRaceData().get().fire(profile, data);
+//			if (result.isPresent()) {
+//				if (result.get().get(ResultProperty.CANCEL_ACTION).contains(true)) event.setCancelled(true);
+//				else {
+//					Double modifier = 0.0;
+//					for (Double mod : result.get().get(ResultProperty.MODIFY_DAMAGE)) modifier+=mod;
+//					event.setBaseDamage(event.getBaseDamage()+modifier);
+//				}
+//			}
+//		}
+//		if (target instanceof Player) {
+//			Profile profile = Profile.loadOrCreate((Player)target);
+//			ActionData data = ActionData.builder(Trigger.ONHIT)
+//					.setSelf((Player)target)
+//					.setOpponent((Living)attacker)
+//					.setDamage(targetdamage)
+//					.build();
+//			Optional<SkillResult> result = profile.getRaceData().get().fire(profile, data);
+//			if (result.isPresent()) {
+//				if (result.get().get(ResultProperty.CANCEL_ACTION).contains(true)) event.setCancelled(true);
+//			}
+//		}
+//		if (event.willCauseDeath() && target instanceof Player) {
+//			Profile profile = Profile.loadOrCreate((Player)target);
+//			ActionData data = ActionData.builder(Trigger.ONDEATH)
+//					.setSelf((Player)target)
+//					.setOpponent((Living)attacker)
+//					.setDamage(targetdamage)
+//					.build();
+//			profile.getRaceData().get().fire(profile, data);
+//			Optional<SkillResult> result = profile.getRaceData().get().fire(profile, data);
+//			if (result.isPresent()) {
+//				if (result.get().get(ResultProperty.CANCEL_ACTION).contains(true)) event.setCancelled(true);
+//			}
+//		}
+//		
+//		//xp stuff
+//		if (attacker instanceof Player) {
+//			DamageManager.damage((Player)attacker, target, targetdamage);
+//		}
+//	}
+	
 	@Listener
 	public void onLaunchProjectile(LaunchProjectileEvent event) {
 		Optional<Living> shooter = event.getCause().first(Living.class);
 		if (!shooter.isPresent()) return;
-		if (StatusEffectManager.frozenEntities.contains(shooter.get()))
+		if (wceRootLiving.frozenEntities.contains(shooter.get()))
 			event.setCancelled(true);
 	}
 	
 	@Listener
 	public void onDeath(Death event) {
 		Living target = event.getTargetEntity();
-		Optional<Player> source = event.getCause().first(Player.class);
-		EventCause cause = source.isPresent()?new EventCause(source.get()):new EventCause();
-		cause.bake(NamedCause.hitTarget(target)); //bake the hit target ontop of the cause
+//		Optional<Player> source = event.getCause().first(Player.class);
+//		EventCause cause = source.isPresent()?new EventCause(source.get()):new EventCause();
+//		cause.bake(NamedCause.hitTarget(target)); //bake the hit target ontop of the cause
 		
-		StatusEffectManager.remove(event.getTargetEntity(), wcEffect.class); //remove all effects
-		DamageManager.death(target.getUniqueId(), 1.0, cause.get());
+//		BoxLiving.removeCustomEffect(event.getTargetEntity(), CustomEffect.class); //remove all effects - now handeled by mtb
+		DamageManager.death(target.getUniqueId(), XPpipe.getMultiplierOr1(target.getType()));
 	}
 	
 	@Listener
@@ -184,33 +258,13 @@ public class SpongeEventListeners {
 		Optional<Player> target = event.getCause().first(Player.class);
 		if (!target.isPresent()) return;
 		
-		////nade collision... cinda
+		////nade collision... kinda
 		for (Entity e : event.getEntities()) if (SkillManager.nades.containsKey(e)) {
-//			WarCraft.l("Carefull with that!");
 			event.setCancelled(true);
 		}
-//		Set<UUID> livings = new HashSet<>();
-//		for (Entity e : event.filterEntities((entity)->(entity instanceof Living)) ) {
-//			livings.add(((Living)e).getUniqueId());
-//		}
-//		List<? extends Entity> nades;
-//		(nades = (event.filterEntities((entity)-> ((entity instanceof Item) && SkillManager.nades.containsKey(entity)))) )
-//			.forEach((nade)->{if (!livings.contains(nade.getCreator().orElse(null))) nade.setVelocity(Vector3d.ZERO);});
-		
-		////  try to merge xp systems
-//		@SuppressWarnings("unchecked") //filtering for exp orbs, so they have to be
-//		List<? extends Entity> entityItems = (List<? extends Entity>) event.filterEntities(entity -> entity.getType().equals(EntityTypes.EXPERIENCE_ORB));
-//		int totalXP = 0;
-//		for (Entity orb : entityItems) {
-//			if (orb instanceof ExperienceOrb) totalXP++;
-//		}
-//		
-//		WarCraft.l(target.get() + " collected " + totalXP + " Exp Orbs");
-//		if (XPpipe.processVanillaXP(target.get(), Profile.loadOrCreate(target.get()), event.getCause()))
-//			event.setCancelled(true);
 		
 		//can't figure xp orbs... so let's just spam that function, it gets the xp... somehow ;D
-		XPpipe.processVanillaXP(target.get(), Profile.loadOrCreate(target.get()), event.getCause());
+		XPpipe.processVanillaXP(target.get(), Profile.loadOrCreate(target.get()));
 	}
 	
 	@Listener
@@ -223,7 +277,7 @@ public class SpongeEventListeners {
 	/** <b>Be very carefull with this event - Can get called up to 50 times per second per entity!</b> */
 	@Listener
 	public void onMove(MoveEntityEvent event) {
-		if ((event.getTargetEntity() instanceof Living) && StatusEffectManager.frozenEntities.contains(event.getTargetEntity().getUniqueId())) 
+		if ((event.getTargetEntity() instanceof Living) && wceRootLiving.frozenEntities.contains(event.getTargetEntity().getUniqueId())) 
 			{ event.setCancelled(true); return; }
 	}
 	
@@ -240,23 +294,31 @@ public class SpongeEventListeners {
 			profile.getRaceData().get().fire(profile, data);
 		}
 	}
+
+	@Listener
+	public void onStartSprinting(BoxSprintEvent event) {
+		Player player = event.getTargetEntity();
+		UUID playerID = player.getUniqueId();
+		
+		Optional<Profile> profile = Profile.getIfOnline(playerID);
+		if (!profile.isPresent()) return;
+		ActionData actiondata = ActionData.builder(Trigger.ONSPRINT)
+				.setSelf(player)
+				.build();
+		profile.get().getRaceData().get().fire(profile.get(), actiondata);
+	}
 	
 	@Listener
-	public void dataChanged(ChangeDataHolderEvent.ValueChange event) {
-		if (!(event.getTargetHolder() instanceof Player)) return;
-		Player player = (Player)event.getTargetHolder();
-		WarCraft.tell(player, "You did something!");
+	public void onStartSneaking(BoxSneakEvent event) {
+		Player player = event.getTargetEntity();
+		UUID playerID = player.getUniqueId();
 		
-		for (ImmutableValue<?> data : event.getEndResult().getSuccessfulData()) {
-			if (data.getKey().equals(Keys.IS_SPRINTING)) {
-				Boolean sprinting = (Boolean) data.get();
-				if (sprinting) WarCraft.tell(player, "You started sprinting");
-			}
-			if (data.getKey().equals(Keys.IS_SNEAKING)) {
-				Boolean sneaking = (Boolean) data.get();
-				if (sneaking) WarCraft.tell(player, "You started sneaking");
-			}
-		}
-		
+		Optional<Profile> profile = Profile.getIfOnline(playerID);
+		if (!profile.isPresent()) return;
+		ActionData actiondata = ActionData.builder(Trigger.ONSNEAK)
+				.setSelf(player)
+				.build();
+		profile.get().getRaceData().get().fire(profile.get(), actiondata);
 	}
+	
 }

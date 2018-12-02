@@ -16,7 +16,6 @@ import org.spongepowered.api.entity.Item;
 import org.spongepowered.api.entity.explosive.Explosive;
 import org.spongepowered.api.entity.living.Living;
 import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.event.cause.NamedCause;
 import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.world.explosion.Explosion;
@@ -25,7 +24,6 @@ import com.flowpowered.math.vector.Vector3d;
 
 import de.dosmike.sponge.WarCraftMC.wcSkill;
 import de.dosmike.sponge.WarCraftMC.catalogs.SkillResult;
-import de.dosmike.sponge.WarCraftMC.events.EventCause;
 import de.dosmike.sponge.WarCraftMC.skills.ActiveSkills;
 import de.dosmike.sponge.WarCraftMC.skills.SkillEffects;
 import de.dosmike.sponge.WarCraftMC.skills.StatusSkills;
@@ -83,7 +81,8 @@ public class SkillManager {
 		item.offer(Keys.INVULNERABILITY_TICKS, 100);
 		
 		nades.put(item, new NadeData(source.getUniqueId(), System.currentTimeMillis()+3000, explosionRadius));
-		source.getWorld().spawnEntity(item, new EventCause().bake(NamedCause.THROWER, source).get());
+//		source.getWorld().spawnEntity(item, new EventCause().bake(NamedCause.THROWER, source).get());
+		source.getWorld().spawnEntity(item);
 		item.setVelocity(dir.mul(speed));
 		
 	}
@@ -115,8 +114,8 @@ public class SkillManager {
 							.shouldBreakBlocks(false)
 							.shouldDamageEntities(true)
 							.shouldPlaySmoke(true)
-							.build(),
-						(thrower.isPresent()?new EventCause(thrower.get()):new EventCause()).get()
+							.build()
+//						,(thrower.isPresent()?new EventCause(thrower.get()):new EventCause()).get()
 						);
 				
 			}

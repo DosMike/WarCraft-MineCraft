@@ -4,8 +4,9 @@ import org.spongepowered.api.entity.living.Living;
 import org.spongepowered.api.entity.living.player.Player;
 
 import de.dosmike.sponge.WarCraftMC.ManaPipe;
+import de.dosmike.sponge.mikestoolbox.living.CustomEffect;
 
-public class wceRestoreMana implements wcEffect {
+public class wceRestoreMana implements CustomEffect {
 
 	private final double manaPerSecond;
 	private final double duration;

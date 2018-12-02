@@ -55,8 +55,8 @@ public class Expression {
 				Optional<Double> result = target.get(Keys.HEALTH);
 				if (result.isPresent()) return Optional.of(result.get());
 			} else if (string.endsWith(".mana")) {
-				Integer result = ((target instanceof Player)?ManaPipe.getMana((Player)target):rng.nextInt(10)); 
-				return Optional.of(Double.valueOf(result)); //i want numbers to always be double in skills 
+				Double result = ((target instanceof Player)?ManaPipe.getMana((Player)target):rng.nextInt(10)); 
+				return Optional.of(result); //i want numbers to always be double in skills 
 			} else if (string.endsWith(".xp")) {
 				if (!(target instanceof Player)) return Optional.of(0.0);
 				Optional<RaceData> racedata = Profile.loadOrCreate((Player)target).getRaceData();

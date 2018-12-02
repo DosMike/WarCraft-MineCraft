@@ -22,8 +22,8 @@ public class LevelUpEvent extends AbstractEvent implements TargetWarCraftEvent, 
     private final Optional<Player> player;
     private final int levels;
 	
-    public LevelUpEvent(Profile target, int levels, Cause cause) {
-		this.cause = cause;
+    public LevelUpEvent(Profile target, int levels) {
+		this.cause = Sponge.getCauseStackManager().getCurrentCause();
 		this.target = target;
 		this.levels = levels;
 		this.player = Sponge.getServer().getPlayer(target.getPlayerID());

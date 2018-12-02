@@ -1,5 +1,9 @@
 package de.dosmike.sponge.WarCraftMC;
 
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.LinkedList;
 import java.util.List;
@@ -11,8 +15,6 @@ import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.config.DefaultConfig;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
-import org.spongepowered.api.event.cause.Cause;
-import org.spongepowered.api.event.cause.NamedCause;
 import org.spongepowered.api.event.game.GameReloadEvent;
 import org.spongepowered.api.event.game.state.GameInitializationEvent;
 import org.spongepowered.api.event.game.state.GameStartedServerEvent;
@@ -29,14 +31,12 @@ import com.google.inject.Inject;
 import de.dosmike.sponge.WarCraftMC.Manager.PlayerStateManager;
 import de.dosmike.sponge.WarCraftMC.Manager.RaceManager;
 import de.dosmike.sponge.WarCraftMC.Manager.SkillManager;
-import de.dosmike.sponge.WarCraftMC.Manager.StatusEffectManager;
 import de.dosmike.sponge.WarCraftMC.commands.CommandRegister;
-import de.dosmike.sponge.WarCraftMC.events.EventCause;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 
-@Plugin(id = "dosmike_warcraft", name = "WarCraft MC", version = "0.2")
+@Plugin(id = "dosmike_warcraft", name = "WarCraft MC", version = "0.3")
 public class WarCraft {
 
 	//default vars...
@@ -95,10 +95,11 @@ public class WarCraft {
 //		L = LangSwitch.createTranslation(this);
 		configDir.toFile().mkdirs();
 		raceConfigManager = HoconConfigurationLoader.builder().setPath(configDir.resolve("races.conf")).build();
-		
+
+		checkDefaultConfigs();
 		loadConfig();
 		
-		EventCause.WarCraftBaseCause = Cause.of(NamedCause.of("WarCraft", Sponge.getPluginManager().fromInstance(this).get()));
+//		EventCause.WarCraftBaseCause = Cause.of(NamedCause.of("WarCraft", Sponge.getPluginManager().fromInstance(this).get()));
 		
 		Sponge.getEventManager().registerListeners(this, new SpongeEventListeners());
 		Sponge.getEventManager().registerListeners(this, new WarCraftEventListeners());
@@ -108,7 +109,57 @@ public class WarCraft {
 		RaceManager.loadRaces();
 		l("%d races loaded from disk", RaceManager.getRaces().size());
 	}
-	
+
+	private void checkDefaultConfigs() {
+		Path general_config = getConfigDir().getParent().resolve("dosmike_warcraft.conf");
+		Path races_config = getConfigDir().resolve("races.conf");
+
+		if (!general_config.toFile().exists()) {
+			w("General Config is missing, extracting default!");
+			InputStream in = null;
+			BufferedOutputStream bos = null;
+			try {
+				in = getClass().getClassLoader().getResourceAsStream("config/dosmike_warcraft.conf");
+				bos = new BufferedOutputStream(new FileOutputStream(general_config.toFile()));
+				byte[] buffer = new byte[512]; int r;
+				while ((r = in.read(buffer,0,buffer.length))>0) {
+					bos.write(buffer, 0, r);
+				}
+				bos.flush();
+			} catch (IOException e) {
+				w(" -- Unable to write default config -- ");
+				e.printStackTrace();
+			} finally {
+				try { in.close(); } catch (Exception ignore) {}
+				try { bos.close(); } catch (Exception ignore) {}
+			}
+		} else {
+			l("General Config found");
+		}
+		if (!races_config.toFile().exists()) {
+			w("Race Config is missing, extracting default!");
+			InputStream in = null;
+			BufferedOutputStream bos = null;
+			try {
+				in = getClass().getClassLoader().getResourceAsStream("config/races.conf");
+				bos = new BufferedOutputStream(new FileOutputStream(races_config.toFile()));
+				byte[] buffer = new byte[512]; int r;
+				while ((r = in.read(buffer,0,buffer.length))>0) {
+					bos.write(buffer, 0, r);
+				}
+				bos.flush();
+			} catch (IOException e) {
+				w(" -- Unable to write default config -- ");
+				e.printStackTrace();
+			} finally {
+				try { in.close(); } catch (Exception ignore) {}
+				try { bos.close(); } catch (Exception ignore) {}
+			}
+		} else {
+			l("Race Config found");
+		}
+	}
+
 	@Listener
 	public void onServerStart(GameStartedServerEvent event) {
 		CommandRegister.RegisterCommands(this);
@@ -118,7 +169,6 @@ public class WarCraft {
 			public void run() {
 				long timer = System.currentTimeMillis();
 				
-				StatusEffectManager.tick();
 				SkillManager.nadeTick();
 				
 				timer = System.currentTimeMillis()-timer;
@@ -167,9 +217,8 @@ public class WarCraft {
 			inactiveWorlds = root.getNode("WarCraftWorldBL").getValue(new TypeToken<List<String>>(){}, new LinkedList<String>());
 			activePermission = root.getNode("WarCraftPermission").getString();
 			
-			String mode = root.getNode("XPHandling").getString("IGNORE");
-			XPpipe.mode = XPpipe.Mode.valueOf(mode);
-			WarCraft.l("Config: set XP handling to " + mode);
+			XPpipe.loadConfig(root);
+			WarCraft.l("Config: set XP handling to " + XPpipe.getMode().toString());
 			
 			ManaPipe.loadConfig(root);
 			WarCraft.l("Config: set mana source to "+ ManaPipe.mode);

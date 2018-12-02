@@ -3,8 +3,6 @@ package de.dosmike.sponge.WarCraftMC.skills;
 import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.entity.living.Living;
 import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.event.cause.Cause;
-import org.spongepowered.api.event.cause.NamedCause;
 import org.spongepowered.api.event.cause.entity.damage.DamageTypes;
 import org.spongepowered.api.event.cause.entity.damage.source.EntityDamageSource;
 
@@ -12,7 +10,8 @@ import de.dosmike.sponge.WarCraftMC.ManaPipe;
 import de.dosmike.sponge.WarCraftMC.wcSkill;
 import de.dosmike.sponge.WarCraftMC.catalogs.ResultProperty;
 import de.dosmike.sponge.WarCraftMC.catalogs.SkillResult;
-import de.dosmike.sponge.WarCraftMC.events.EventCause;
+import de.dosmike.sponge.WarCraftMC.effects.wceManaTransfer;
+import de.dosmike.sponge.mikestoolbox.living.BoxLiving;
 
 /** skills affecting/maipulating the stats of a living like health, mana, .... */
 public class StatusSkills {
@@ -22,6 +21,25 @@ public class StatusSkills {
 		if (source instanceof Player) {
 			Player p = (Player) source;
 			ManaPipe.subMana(p, amount.intValue());
+			return new SkillResult().push(ResultProperty.SUCCESS, true);
+		}
+		return new SkillResult().push(ResultProperty.SUCCESS, false);
+	}
+	@wcSkill("RestoreMana")
+	public static SkillResult skillManaRestore(Living source, Double amount) {
+		if (source instanceof Player) {
+			Player p = (Player) source;
+			ManaPipe.addMana(p, amount.intValue());
+			return new SkillResult().push(ResultProperty.SUCCESS, true);
+		}
+		return new SkillResult().push(ResultProperty.SUCCESS, false);
+	}
+	@wcSkill("TransferMana")
+	public static SkillResult skillManaRestore(Living source, Living target, Double amount) {
+		if (source instanceof Player && target instanceof Player) {
+			Player s = (Player) source;
+			Player p = (Player) target;
+			BoxLiving.addCustomEffect(p, new wceManaTransfer(s, amount, 1.0));
 			return new SkillResult().push(ResultProperty.SUCCESS, true);
 		}
 		return new SkillResult().push(ResultProperty.SUCCESS, false);
@@ -44,7 +62,7 @@ public class StatusSkills {
 		Double value = source.get(Keys.HEALTH).get()+amount;
 		Double max = source.get(Keys.MAX_HEALTH).get();
 		source.offer(Keys.HEALTH, value>max?max:value);
-		
+
 		return new SkillResult().push(ResultProperty.SUCCESS, true);
 	}
 
@@ -52,9 +70,13 @@ public class StatusSkills {
 	public static SkillResult skillTakeHealth(Living target, Double amount, Living source) {
 //		Double value = target.get(Keys.HEALTH).get()-amount;
 //		target.offer(Keys.HEALTH, value<0.0?0.0:value);
-		Cause cause = new EventCause().bake(NamedCause.source(source)).bake(NamedCause.hitTarget(target)).get();
+		
+//		Cause cause = new EventCause().bake(NamedCause.source(source)).bake(NamedCause.hitTarget(target)).get();
+//		EntityDamageSource causeExtra = EntityDamageSource.builder().entity(source).type(DamageTypes.CUSTOM).build();
+//		target.damage(amount, causeExtra, Cause.builder().from(cause).suggestNamed("Skill Hurt", causeExtra).build());//apply custom ammount of damage
+		
 		EntityDamageSource causeExtra = EntityDamageSource.builder().entity(source).type(DamageTypes.CUSTOM).build();
-		target.damage(amount, causeExtra, Cause.builder().from(cause).suggestNamed("Skill Hurt", causeExtra).build());//apply custom ammount of damage
+		target.damage(amount, causeExtra);//apply custom ammount of damage
 		
 		return new SkillResult().push(ResultProperty.SUCCESS, true);
 	}

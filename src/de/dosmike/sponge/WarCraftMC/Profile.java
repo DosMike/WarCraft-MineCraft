@@ -10,14 +10,11 @@ import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.entity.living.player.gamemode.GameMode;
 import org.spongepowered.api.entity.living.player.gamemode.GameModes;
-import org.spongepowered.api.event.cause.Cause;
-import org.spongepowered.api.event.cause.NamedCause;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 
 import de.dosmike.sponge.WarCraftMC.Manager.RaceManager;
 import de.dosmike.sponge.WarCraftMC.events.ChangeRaceEvent;
-import de.dosmike.sponge.WarCraftMC.events.EventCause;
 import de.dosmike.sponge.WarCraftMC.events.GainXPEvent;
 import de.dosmike.sponge.WarCraftMC.events.LevelUpEvent;
 import de.dosmike.sponge.WarCraftMC.races.Race;
@@ -121,9 +118,11 @@ public class Profile {
 	 * <i><b>NOTE:</b></i> This does not check the required level in case a<br>
 	 * admin command wants to forcibly change a race later.
 	 * @returns true if the switch was complete, false if the ChangeRaceEvent <br>was cancelled ot the level requirement failed */
-	public boolean switchRace(Race to, NamedCause cause) {
+//	public boolean switchRace(Race to, NamedCause cause) {
+	public boolean switchRace(Race to) {
 		if (racedata != null && racedata.getRace().getID().equals(to.getID())) return false; //no change so why bother
-		ChangeRaceEvent event = new ChangeRaceEvent(this, (racedata!=null?racedata.race:null), to, new EventCause(cause).get());
+//		ChangeRaceEvent event = new ChangeRaceEvent(this, (racedata!=null?racedata.race:null), to, new EventCause(cause).get());
+		ChangeRaceEvent event = new ChangeRaceEvent(this, (racedata!=null?racedata.race:null), to);
 		/* copy this */Sponge.getEventManager().post(event); if (event.isCancelled()) return false;/* pasta that */
 		
 		WarCraft.instance.getConfigDir().resolve("Profile").toFile().mkdirs();//becaus configurate does NOT create dirs
@@ -136,7 +135,8 @@ public class Profile {
 				racedata = RaceData.loadOrCreate(to, root);
 				Optional<Player> op = Sponge.getServer().getPlayer(playerID);
 				if (op.isPresent()) WarCraft.tell(op.get(), "You are now part of the ", Text.of(TextColors.GOLD, to.getName()));
-				XPpipe.processWarCraftXP(this, 0, new EventCause(cause).get());
+//				XPpipe.processWarCraftXP(this, 0, new EventCause(cause).get());
+				XPpipe.processWarCraftXP(this, 0);
 //				pushXP(0, new EventCause(cause).get());
 			}
 			else racedata = null;
@@ -148,11 +148,11 @@ public class Profile {
 	}
 	
 	/** expecting a prefectly reasoned cause why this profile gains XP now*/
-	public void pushXP(long XP, Cause cause) {
+	public void pushXP(long XP) {
 		if (XP < 0) throw new IllegalArgumentException("XP can't be nagative");
 		if (racedata == null) return;
 		if (XP > 0) {
-			GainXPEvent event = new GainXPEvent(this, XP, cause);
+			GainXPEvent event = new GainXPEvent(this, XP);
 			/* copy this */Sponge.getEventManager().post(event); if (event.isCancelled()) return;/* pasta that */
 			XP = event.getXP(); //get back XP in case it changed
 		}
@@ -160,7 +160,7 @@ public class Profile {
 		//pass cause further in case of level up
 		int levels = racedata.giveXP(XP); 
 		if (levels > 0) {
-			LevelUpEvent event2 = new LevelUpEvent(this, levels, cause);
+			LevelUpEvent event2 = new LevelUpEvent(this, levels);
 			/* copy this */Sponge.getEventManager().post(event2); if (event2.isCancelled()) return;/* pasta that */
 			
 			while (levels-->0) { racedata.levelUp(true); globalLevel++; } 

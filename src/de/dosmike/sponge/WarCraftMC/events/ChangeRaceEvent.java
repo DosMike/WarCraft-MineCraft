@@ -21,8 +21,8 @@ public class ChangeRaceEvent extends AbstractChangeEvent<Race> implements Target
     private final Optional<Race> previous;
     private final Optional<Race> current;
 	
-    public ChangeRaceEvent(Profile target, Race previous, Race current, Cause cause) {
-		this.cause = cause;
+    public ChangeRaceEvent(Profile target, Race previous, Race current) {
+		this.cause = Sponge.getCauseStackManager().getCurrentCause();
 		this.target = target;
 		this.player = Sponge.getServer().getPlayer(target.getPlayerID());
 		this.previous = previous==null?Optional.empty():Optional.of(previous);

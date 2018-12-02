@@ -104,7 +104,9 @@ public class Skill {
 				}
 			return this;
 		}
-		public Skill build() { return building; }
+		public Skill build() {
+			return building;
+		}
 	};
 	public static Builder builder(String id) {
 		return new Builder(id);

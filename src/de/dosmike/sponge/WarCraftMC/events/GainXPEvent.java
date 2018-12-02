@@ -23,8 +23,8 @@ public class GainXPEvent extends AbstractEvent implements TargetWarCraftEvent, C
     private final Optional<Player> player;
     private long xp;
 	
-    public GainXPEvent(Profile target, long XP, Cause cause) {
-		this.cause = cause;
+    public GainXPEvent(Profile target, long XP) {
+		this.cause = Sponge.getCauseStackManager().getCurrentCause();
 		this.target = target;
 		this.player = Sponge.getServer().getPlayer(target.getPlayerID());
 		this.xp = XP;

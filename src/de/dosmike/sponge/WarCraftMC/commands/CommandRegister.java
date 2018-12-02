@@ -15,6 +15,6 @@ public class CommandRegister {
 		Sponge.getCommandManager().register(instance, cmdAbility2.getCommandSpec(), "ability2", "skill3", "a2");
 		Sponge.getCommandManager().register(instance, cmdAbility3.getCommandSpec(), "ability3", "skill2", "a3");
 		Sponge.getCommandManager().register(instance, cmdUltimate.getCommandSpec(), "ultimate", "ulti", "ult");
-		//Sponge.getCommandManager().register(instance, cmdTest.getCommandSpec(), "test");
+//		Sponge.getCommandManager().register(instance, cmdTest.getCommandSpec(), "test");
 	}
 }

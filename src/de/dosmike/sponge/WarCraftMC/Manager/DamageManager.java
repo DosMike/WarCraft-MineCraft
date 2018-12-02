@@ -8,7 +8,6 @@ import java.util.UUID;
 
 import org.spongepowered.api.entity.living.Living;
 import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.event.cause.Cause;
 
 /** Responsible for tracking damage and awarding xp as a entity dies.<br>
  * This is done to give players a fair share, instead of a LoL-like last hit takes it all */
@@ -62,12 +61,12 @@ public class DamageManager {
 	
 	/** resolve xp by dealth damage * multiplier for the not dead entity
 	 * @param cause is for the actual xp gain, should be ready to go, don't touch */
-	public static void death(UUID entity, double multiplier, Cause cause) {
+	public static void death(UUID entity, double multiplier) {
 		if (!damageMonitor.containsKey(entity)) return;
 		EntityDamageHolder h = damageMonitor.get(entity);
 		Set<UUID> fighters = new HashSet<>();
 		fighters.addAll(h.keySet());
-		h.payXP(multiplier, cause	);
+		h.payXP(multiplier);
 		damageMonitor.remove(entity);
 		fighters.forEach(fighter -> {
 			Set<UUID> victims = entityMonitor.get(fighter);

@@ -21,8 +21,8 @@ import org.spongepowered.api.text.Text;
 import com.dolhub.tech.MathEval;
 import com.google.common.reflect.TypeToken;
 
-import de.dosmike.sponge.WarCraftMC.Manager.StatusEffectManager;
 import de.dosmike.sponge.WarCraftMC.effects.wceRestoreMana;
+import de.dosmike.sponge.mikestoolbox.living.BoxLiving;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 
@@ -58,7 +58,7 @@ public class ManaPipe {
 			itemDuration = node.getNode("Duration").getString("amount").toLowerCase();
 	}
 	
-	public static int getMana(Player player) {
+	public static double getMana(Player player) {
 		if (mode==Mode.FOODLEVEL) {
 			int val = player.get(Keys.FOOD_LEVEL).get();
 //			WarCraft.l(player.getName()+" has FOOD_LEVEL "+val);
@@ -66,7 +66,7 @@ public class ManaPipe {
 		}
 		if (!virtualMax.containsKey(player.getUniqueId())) resetMana(player);
 		Double vm = virtualMana.get(player.getUniqueId());
-		return vm==null?0:vm.intValue();
+		return vm==null?0:vm;
 	}
 	public static void setMana(Player player, double mana) {
 		if (mode!=Mode.BOSSBAR) return;
@@ -157,7 +157,7 @@ public class ManaPipe {
 						.replace("random", String.valueOf(rng.nextFloat()*100)) );
 		double duration = engine.evaluate(
 				itemDuration.replace("amount", String.valueOf(amount)) );
-		StatusEffectManager.add(player, new wceRestoreMana(
+		BoxLiving.addCustomEffect(player, new wceRestoreMana(
 				duration, amount));
 	}
 	static Map<UUID, ServerBossBar> manaBar = new HashMap<>();

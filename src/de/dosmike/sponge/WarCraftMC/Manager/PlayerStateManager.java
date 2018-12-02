@@ -11,7 +11,6 @@ import org.spongepowered.api.entity.living.player.Player;
 
 import de.dosmike.sponge.WarCraftMC.Profile;
 import de.dosmike.sponge.WarCraftMC.SpongeEventListeners;
-import de.dosmike.sponge.WarCraftMC.events.EventCause;
 import de.dosmike.sponge.WarCraftMC.events.ProfileStateChangeEvent;
 
 public class PlayerStateManager {
@@ -33,10 +32,12 @@ public class PlayerStateManager {
 			
 			if (now && !was) {
 				active.add(id);
-				Sponge.getEventManager().post(new ProfileStateChangeEvent(pro.get(), now, new EventCause(p).get()));
+//				Sponge.getEventManager().post(new ProfileStateChangeEvent(pro.get(), now, new EventCause(p).get()));
+				Sponge.getEventManager().post(new ProfileStateChangeEvent(pro.get(), now));
 			} else if (was && !now) {
 				active.remove(id);
-				Sponge.getEventManager().post(new ProfileStateChangeEvent(pro.get(), now, new EventCause(p).get()));
+//				Sponge.getEventManager().post(new ProfileStateChangeEvent(pro.get(), now, new EventCause(p).get()));
+				Sponge.getEventManager().post(new ProfileStateChangeEvent(pro.get(), now));
 			}
 		}
 		active.retainAll(online); //remove players offline
@@ -48,6 +49,7 @@ public class PlayerStateManager {
 		active.remove(player.getUniqueId());
 		Optional<Profile> pro = Profile.getIfOnline(player.getUniqueId());
 		if (!pro.isPresent()) return;
-		Sponge.getEventManager().post(new ProfileStateChangeEvent(pro.get(), false, new EventCause(player).get()));
+//		Sponge.getEventManager().post(new ProfileStateChangeEvent(pro.get(), false, new EventCause(player).get()));
+		Sponge.getEventManager().post(new ProfileStateChangeEvent(pro.get(), false));
 	}
 }

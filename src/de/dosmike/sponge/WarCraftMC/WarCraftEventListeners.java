@@ -10,13 +10,13 @@ import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 
 import de.dosmike.sponge.WarCraftMC.Manager.NextSpawnActionManager;
-import de.dosmike.sponge.WarCraftMC.Manager.StatusEffectManager;
-import de.dosmike.sponge.WarCraftMC.effects.wcEffect;
 import de.dosmike.sponge.WarCraftMC.events.GainXPEvent;
 import de.dosmike.sponge.WarCraftMC.events.LevelUpEvent;
 import de.dosmike.sponge.WarCraftMC.events.ProfileStateChangeEvent;
 import de.dosmike.sponge.WarCraftMC.races.Action.Trigger;
 import de.dosmike.sponge.WarCraftMC.races.ActionData;
+import de.dosmike.sponge.mikestoolbox.living.BoxLiving;
+import de.dosmike.sponge.mikestoolbox.living.CustomEffect;
 
 /** This will handle events we send, basically to prettify the code a bit */
 public class WarCraftEventListeners {
@@ -49,7 +49,7 @@ public class WarCraftEventListeners {
 			else {
 //				WarCraft.l(event.getPlayer().get() + " stopped playing WarCraft");
 //				NextSpawnActionManager.removeAll(event.getPlayer().get());
-				StatusEffectManager.remove(event.getPlayer().get(), wcEffect.class); //remove all effects
+				BoxLiving.removeCustomEffect(event.getPlayer().get(), CustomEffect.class); //remove all effects
 				Profile profile = event.getWarCraftProfile(); //Profile.loadOrCreate(event.getPlayer().get());
 				XPpipe.restoreVanilla(event.getPlayer().get(), profile);
 				SpongeEventListeners.restoreKeyedDefaults(event.getPlayer().get());
