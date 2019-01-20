@@ -36,7 +36,7 @@ import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 
-@Plugin(id = "dosmike_warcraft", name = "WarCraft MC", version = "0.3")
+@Plugin(id = "dosmike_warcraft", name = "WarCraft MC", version = "0.4")
 public class WarCraft {
 
 	//default vars...

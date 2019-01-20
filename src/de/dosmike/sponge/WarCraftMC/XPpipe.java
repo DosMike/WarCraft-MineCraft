@@ -13,6 +13,7 @@ import de.dosmike.sponge.WarCraftMC.events.GainXPEvent;
 import de.dosmike.sponge.WarCraftMC.events.LevelUpEvent;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
+import org.spongepowered.api.event.cause.Cause;
 
 public class XPpipe {
 	/**
