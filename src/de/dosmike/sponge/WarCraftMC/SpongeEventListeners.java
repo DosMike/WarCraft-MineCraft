@@ -70,7 +70,7 @@ public class SpongeEventListeners {
 					.setSelf((Player)event.getTargetEntity())
 					.build();
 //			Optional<SkillResult> result =
-					profile.getRaceData().get().fire(profile, data);
+					profile.getRaceData().ifPresent(race->race.fire(profile, data));
 //			if (result.isPresent()) {
 //				if (result.get().get(ResultProperty.CANCEL_ACTION).contains(true)) event.setCancelled(true);
 //			}
@@ -96,7 +96,7 @@ public class SpongeEventListeners {
 					.setOpponent(target)
 					.setDamage(targetdamage)
 					.build();
-			Optional<SkillResult> result = profile.getRaceData().get().fire(profile, data);
+			Optional<SkillResult> result = profile.getRaceData().flatMap(race->race.fire(profile, data));
 			if (result.isPresent()) {
 				if (result.get().get(ResultProperty.CANCEL_ACTION).contains(true)) event.setCancelled(true);
 				else {
@@ -113,7 +113,7 @@ public class SpongeEventListeners {
 					.setOpponent((Living)attacker)
 					.setDamage(targetdamage)
 					.build();
-			Optional<SkillResult> result = profile.getRaceData().get().fire(profile, data);
+			Optional<SkillResult> result = profile.getRaceData().flatMap(race->race.fire(profile, data));
 			if (result.isPresent()) {
 				if (result.get().get(ResultProperty.CANCEL_ACTION).contains(true)) event.setCancelled(true);
 			}
@@ -125,8 +125,8 @@ public class SpongeEventListeners {
 					.setOpponent((Living)attacker)
 					.setDamage(targetdamage)
 					.build();
-			profile.getRaceData().get().fire(profile, data);
-			Optional<SkillResult> result = profile.getRaceData().get().fire(profile, data);
+			profile.getRaceData().ifPresent(race->race.fire(profile, data));
+			Optional<SkillResult> result = profile.getRaceData().flatMap(race->race.fire(profile, data));
 			if (result.isPresent()) {
 				if (result.get().get(ResultProperty.CANCEL_ACTION).contains(true)) event.setCancelled(true);
 			}
@@ -240,7 +240,7 @@ public class SpongeEventListeners {
 		ActionData data = ActionData.builder(Trigger.ONSPAWN)
 				.setSelf(event.getTargetEntity())
 				.build();
-		profile.get().getRaceData().get().fire(profile.get(), data);
+		profile.get().getRaceData().ifPresent(race->race.fire(profile.get(), data));
 		ManaPipe.resetMana(event.getTargetEntity());
 	}
 	
@@ -291,7 +291,7 @@ public class SpongeEventListeners {
 					.setSelf((Player)player.get())
 					.setItem(event.getItemStack().createStack())
 					.build();
-			profile.getRaceData().get().fire(profile, data);
+			profile.getRaceData().ifPresent(race->race.fire(profile, data));
 		}
 	}
 
@@ -305,7 +305,7 @@ public class SpongeEventListeners {
 		ActionData actiondata = ActionData.builder(Trigger.ONSPRINT)
 				.setSelf(player)
 				.build();
-		profile.get().getRaceData().get().fire(profile.get(), actiondata);
+		profile.get().getRaceData().ifPresent(race->race.fire(profile.get(), actiondata));
 	}
 	
 	@Listener
@@ -318,7 +318,7 @@ public class SpongeEventListeners {
 		ActionData actiondata = ActionData.builder(Trigger.ONSNEAK)
 				.setSelf(player)
 				.build();
-		profile.get().getRaceData().get().fire(profile.get(), actiondata);
+		profile.get().getRaceData().ifPresent(race->race.fire(profile.get(), actiondata));
 	}
 	
 }
