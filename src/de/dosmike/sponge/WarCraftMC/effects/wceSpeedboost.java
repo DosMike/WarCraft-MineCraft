@@ -6,7 +6,7 @@ import org.spongepowered.api.entity.living.Living;
 import de.dosmike.sponge.WarCraftMC.WarCraft;
 import de.dosmike.sponge.mikestoolbox.living.CustomEffect;
 
-public class wceSpeedboost implements CustomEffect {
+public class wceSpeedboost implements WarCraftCustomEffect {
 
 //	private final PotionEffect fx;
 	private final double duration;
@@ -34,7 +34,7 @@ public class wceSpeedboost implements CustomEffect {
 	@Override
 	public void onApply(Living entity) {
 		Double speed = entity.get(Keys.WALKING_SPEED).orElse(0.1);
-		WarCraft.l("Changing speed from "+speed+" to " +(speed+amount));
+//		WarCraft.l("Changing speed from "+speed+" to " +(speed+amount));
 		entity.offer(Keys.WALKING_SPEED, speed+amount);
 	}
 
@@ -46,7 +46,7 @@ public class wceSpeedboost implements CustomEffect {
 	@Override
 	public void onRemove(Living entity) {
 		Double speed = entity.get(Keys.WALKING_SPEED).orElse(0.1);
-		WarCraft.l("Returning speed from "+speed+" to " +(speed-amount));
+//		WarCraft.l("Returning speed from "+speed+" to " +(speed-amount));
 		entity.offer(Keys.WALKING_SPEED, speed-amount);
 	}
 	

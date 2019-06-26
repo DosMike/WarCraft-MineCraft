@@ -5,7 +5,7 @@ import org.spongepowered.api.entity.living.Living;
 
 import de.dosmike.sponge.mikestoolbox.living.CustomEffect;
 
-public class wceChangedhealth implements CustomEffect {
+public class wceChangedhealth implements WarCraftCustomEffect {
 
 	final double health;
 	public wceChangedhealth(double amount) {

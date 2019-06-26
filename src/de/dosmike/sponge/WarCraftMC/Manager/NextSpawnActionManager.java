@@ -73,9 +73,8 @@ public class NextSpawnActionManager {
 	public static void onSpawn(Player player) {
 		UUID at = player.getUniqueId();
 		if (!queued.containsKey(at)) return;
-		Set<Consumer<Player>> set = queued.get(at);
+		Set<Consumer<Player>> set = queued.remove(at);
 		for (Consumer<Player> action : set) action.accept(player);
-		queued.remove(at);
 	}
 	
 	private static boolean contains(Set<Consumer<Player>> set, Consumer<Player> item) {

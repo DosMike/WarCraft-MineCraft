@@ -10,7 +10,7 @@ import org.spongepowered.api.event.cause.entity.damage.source.EntityDamageSource
 
 import de.dosmike.sponge.mikestoolbox.living.CustomEffect;
 
-public class wceDelayedLightning implements CustomEffect {
+public class wceDelayedLightning implements WarCraftCustomEffect {
 
 	private final double delay;
 	private final double damage;

@@ -8,7 +8,7 @@ import org.spongepowered.api.entity.living.Living;
 
 import de.dosmike.sponge.mikestoolbox.living.CustomEffect;
 
-public class wceRootLiving implements CustomEffect {
+public class wceRootLiving implements WarCraftCustomEffect {
 
 	/** special valus that have no other place to go */
 	public static Set<UUID> frozenEntities = new HashSet<>();

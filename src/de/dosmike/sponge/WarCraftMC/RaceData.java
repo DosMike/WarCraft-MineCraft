@@ -57,13 +57,31 @@ public class RaceData {
 		raceLevel++;
 		skillPoints++; //make the amount of skillpoints per level a config value? this would mess with the perk system tho
 	}
+	/**
+	 * reduce race level by one, if not already 1. this DOES NOT re-add the XP to the balance.<br>
+	 * If xp in level are not scaled: with increasing XP formulas the remaining XP might
+	 * still exceed the required XP and a level up might occur at any moment.<br>
+	 * SkillPoints are not touched as they might be spent and it's unclear what skill to reset
+	 * @param scaleXP set to true if you want to keep current level progression in percent.
+	 *                otherwise the XP will not be scaled
+	 * @return the XP the were consumed from the levelup that's being undone
+	 */
+	public long levelDown(boolean scaleXP) {
+		if (raceLevel<=1) return 0; // already at min level
+		double progress = (double)getXP()/getLevelXp();
+		raceLevel--; //reduce player level
+		levelXP=-1; //notify getLevelXp() to recalculate levelXP
+		getLevelXp(); //recalculate levelXP
+		if (scaleXP) xp = (long)(progress * levelXP);
+		return levelXP;
+	}
 
 	public long getXP() {
 		return xp;
 	}
 	/** <b>DO NOT CALL</b> calling this directly will ignore all events!<br>
 	 * Use Profile.pushXP instead!
-	 * @param return how many levels the player could raise now */
+	 * @return how many levels the player could raise now */
 	public int giveXP(long xp) {
 		this.xp += xp;
 		
@@ -72,7 +90,7 @@ public class RaceData {
 		while ((raceLevel+levels)<race.getMaxLevel() && test >= (tmp=race.getLevelXp(raceLevel+levels))) { test -= tmp; levels++; }
 		return levels;
 	}
-	/** required for xp leech
+	/** required for xp leech, can't take more xp than in current level
 	 * @return the actual amount of taken XP */
 	public long takeXP(long xp) {
 		this.xp -= xp;
@@ -87,6 +105,7 @@ public class RaceData {
 		if (skillNo<0 || skillNo>=skillProgress.length) throw new IllegalArgumentException("Skill index out of bounds");
 		skillPoints += skillProgress[skillNo]; skillProgress[skillNo] = 0;
 	}
+	/** allows negative values (not advised) */
 	public void addSkill(int skillPoints) {
 		this.skillPoints += skillPoints;
 	}
@@ -140,7 +159,7 @@ public class RaceData {
 	
 	/** Returns a SkillResult if the profile is active containing properties for all fired skills */
 	public Optional<SkillResult> fire(Profile link, ActionData baseData) {
-		if (!link.isActive(Sponge.getServer().getPlayer(link.playerID).get())) return Optional.empty();
+		if (!Profile.isActive(Sponge.getServer().getPlayer(link.playerID).get(), link)) return Optional.empty();
 //		Player p = Sponge.getServer().getPlayer(link.getPlayerID()).get();
 //		EventCause cause = new EventCause(p);
 //		if (baseData.getTarget().isPresent()) cause.bake(NamedCause.HIT_TARGET, baseData.getTarget().get());
@@ -172,5 +191,14 @@ public class RaceData {
 			}
 		}
 		return Optional.of(result);
+	}
+
+	/** reset the data in this race to the default values */
+	public void reset() {
+		Arrays.fill(skillProgress, 0);
+		skillPoints=0;
+		xp=0;
+		raceLevel=1;
+		for (int i=0;i<skillCooldown.length;i++) skillCooldown[i]=System.currentTimeMillis()+(long)(race.getSkill(i).getCooldown(skillProgress[i]));
 	}
 }

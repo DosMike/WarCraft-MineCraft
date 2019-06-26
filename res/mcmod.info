@@ -1,7 +1,7 @@
 [{
     "modid": "dosmike_warcraft",
     "name": "WarCraft MC",
-    "version": "0.4",
+    "version": "0.5",
     "description": "Races and Skills, Level and Fight",
     "authorList": [
         "DosMike"

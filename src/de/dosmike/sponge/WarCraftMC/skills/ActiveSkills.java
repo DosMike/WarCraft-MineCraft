@@ -122,6 +122,7 @@ public class ActiveSkills {
 	public static SkillResult skillAreaFreeze(Living source, Double range, Double duration) {
 		List<Entity> nearby = new LinkedList<>();
 		nearby.addAll(source.getNearbyEntities(range));
+		nearby.remove(source);
 		for (Entity e : nearby) if (e instanceof Living) BoxLiving.addCustomEffect((Living)e, new wceRootLiving(duration));
 		
 		return new SkillResult().push(ResultProperty.SUCCESS, true);

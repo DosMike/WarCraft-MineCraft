@@ -2,6 +2,7 @@ package de.dosmike.sponge.WarCraftMC;
 
 import java.util.Optional;
 
+import de.dosmike.sponge.WarCraftMC.Manager.PlayerStateManager;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
@@ -48,13 +49,8 @@ public class WarCraftEventListeners {
 				WarCraft.w("We lost a player to space-time, effect could not be stripped on profile deactivate");
 			else {
 //				WarCraft.l(event.getPlayer().get() + " stopped playing WarCraft");
-//				NextSpawnActionManager.removeAll(event.getPlayer().get());
-				BoxLiving.removeCustomEffect(event.getPlayer().get(), CustomEffect.class); //remove all effects
-				Profile profile = event.getWarCraftProfile(); //Profile.loadOrCreate(event.getPlayer().get());
-				XPpipe.restoreVanilla(event.getPlayer().get(), profile);
-				SpongeEventListeners.restoreKeyedDefaults(event.getPlayer().get());
-				profile.saveAndUnload();
-				ManaPipe.dropPlayer(event.getPlayer().get());
+				PlayerStateManager.resetPlayerFx(event.getPlayer().get(), event.getWarCraftProfile());
+				event.getWarCraftProfile().saveAndUnload();
 			}
 		} else {
 			NextSpawnActionManager.onSpawn(event.getPlayer().get());

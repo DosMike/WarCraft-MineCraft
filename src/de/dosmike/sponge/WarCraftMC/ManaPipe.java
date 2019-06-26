@@ -1,9 +1,6 @@
 package de.dosmike.sponge.WarCraftMC;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.boss.BossBarColors;
@@ -104,6 +101,7 @@ public class ManaPipe {
 		bar.setPercent(perc);
 	}
 
+	/** completely refills the mana for this player */
 	public static void resetMana(Player player) {
 		if (mode!=Mode.BOSSBAR) return;
 		Profile profile = Profile.loadOrCreate(player);
@@ -137,7 +135,7 @@ public class ManaPipe {
 	public static void tick() {
 		if (mode!=Mode.BOSSBAR) return;
 		Sponge.getServer().getOnlinePlayers().forEach(player -> {
-			if (!Profile.loadOrCreate(player).isActive(player)) return;
+			if (!Profile.isActive(player, null)) return;
 			addMana(player, regeneration);
 		});
 	}
@@ -150,10 +148,10 @@ public class ManaPipe {
 		int dv = (int)item.toContainer().get(query).orElse(0);
 		if (dv != itemDV) return;
 //		WarCraft.l(player.getName()+"Consumed Mana Potion!");
-		Profile profile = Profile.loadOrCreate(player);
-		if (!profile.getRaceData().isPresent()) return;
+		Optional<Profile> profile = Profile.getIfActive(player);
+		if (!profile.isPresent()) return;
 		int amount = (int)engine.evaluate(
-				itemRestore.replace("level", String.valueOf(profile.getRaceData().get().getLevel()))
+				itemRestore.replace("level", String.valueOf(profile.get().getRaceData().get().getLevel()))
 						.replace("random", String.valueOf(rng.nextFloat()*100)) );
 		double duration = engine.evaluate(
 				itemDuration.replace("amount", String.valueOf(amount)) );

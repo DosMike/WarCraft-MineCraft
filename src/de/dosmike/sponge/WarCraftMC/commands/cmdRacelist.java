@@ -17,7 +17,7 @@ public class cmdRacelist implements CommandExecutor {
 	public static CommandSpec getCommandSpec() {
 		 return CommandSpec.builder()
 			.description(Text.of("/race [page] - Display a race list"))
-			.arguments(GenericArguments.optional(GenericArguments.onlyOne(GenericArguments.integer(Text.of("Page")))))
+			.arguments(GenericArguments.optional(GenericArguments.integer(Text.of("Page"))))
 			.permission("wc.race.list")
 			.executor(new cmdRacelist())
 			.build();

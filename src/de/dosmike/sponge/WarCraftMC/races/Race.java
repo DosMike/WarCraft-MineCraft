@@ -31,7 +31,7 @@ public class Race {
 	public int getMaxLevel() { return autoMaxLevel; }
 	/** returns the xp needed to level up, always 0 if player is at max level, so check that first!
 	 * @param level counts natural (1-based) */
-	public long getLevelXp(int level) { return (int)engine.evaluate(levelXP.replace("level", String.valueOf(level))); }
+	public long getLevelXp(int level) { return (long)engine.evaluate(levelXP.replace("level", String.valueOf(level))); }
 	/** returns the amount of skills this race has. usually this should not exceed 5 for sake of sanity */
 	public int getSkillCount() { return skills.length; }
 	/** returns the amount of skillpoints a player starts with in this race */
