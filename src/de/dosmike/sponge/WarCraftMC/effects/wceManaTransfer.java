@@ -7,7 +7,7 @@ import de.dosmike.sponge.WarCraftMC.ManaPipe;
 import de.dosmike.sponge.WarCraftMC.Profile;
 import de.dosmike.sponge.mikestoolbox.living.CustomEffect;
 
-public class wceManaTransfer implements CustomEffect {
+public class wceManaTransfer implements WarCraftCustomEffect {
 
 	private final Player source;
 	private final double duration;

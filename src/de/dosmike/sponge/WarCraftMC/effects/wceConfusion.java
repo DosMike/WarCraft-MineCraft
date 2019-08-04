@@ -9,7 +9,7 @@ import org.spongepowered.api.entity.living.Living;
 
 import de.dosmike.sponge.mikestoolbox.living.CustomEffect;
 
-public class wceConfusion implements CustomEffect {
+public class wceConfusion implements WarCraftCustomEffect {
 
 	private final PotionEffect fx;
 	private final double duration;

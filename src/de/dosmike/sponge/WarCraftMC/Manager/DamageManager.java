@@ -60,7 +60,8 @@ public class DamageManager {
 	}
 	
 	/** resolve xp by dealth damage * multiplier for the not dead entity
-	 * @param cause is for the actual xp gain, should be ready to go, don't touch */
+	 * @param entity is the entity that dies
+	 * @param multiplier is a additional xp multiplier to apply */
 	public static void death(UUID entity, double multiplier) {
 		if (!damageMonitor.containsKey(entity)) return;
 		EntityDamageHolder h = damageMonitor.get(entity);

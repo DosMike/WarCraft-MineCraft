@@ -5,6 +5,11 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+import de.dosmike.sponge.WarCraftMC.ManaPipe;
+import de.dosmike.sponge.WarCraftMC.XPpipe;
+import de.dosmike.sponge.WarCraftMC.effects.WarCraftCustomEffect;
+import de.dosmike.sponge.mikestoolbox.living.BoxLiving;
+import de.dosmike.sponge.mikestoolbox.living.CustomEffect;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.entity.living.player.Player;
@@ -27,7 +32,7 @@ public class PlayerStateManager {
 			UUID id = p.getUniqueId();
 			if (disconnecting.contains(id)) continue;
 			online.add(id);
-			boolean now = pro.get().isActive(p);
+			boolean now = Profile.isActive(p, pro.get());
 			boolean was = active.contains(id);
 			
 			if (now && !was) {
@@ -50,6 +55,21 @@ public class PlayerStateManager {
 		Optional<Profile> pro = Profile.getIfOnline(player.getUniqueId());
 		if (!pro.isPresent()) return;
 //		Sponge.getEventManager().post(new ProfileStateChangeEvent(pro.get(), false, new EventCause(player).get()));
+		//updates state to inactive, that in turn removes effects
 		Sponge.getEventManager().post(new ProfileStateChangeEvent(pro.get(), false));
+	}
+
+	/** utility to remove all race modifications to a player on e.g. race change
+	 * or the player stops participating in warcraft by e.g. a world change
+	 * @param optionalProfile can be passed in, if the caller happens to have it,
+	 *                        otherwise will be retrieved
+	 */
+	public static void resetPlayerFx(Player player, Profile optionalProfile) {
+//		NextSpawnActionManager.removeAll(player);
+		if (optionalProfile == null) optionalProfile = Profile.loadOrCreate(player);
+		BoxLiving.removeCustomEffect(player, WarCraftCustomEffect.class); //remove all effects
+		XPpipe.restoreVanilla(player, optionalProfile);
+		SpongeEventListeners.restoreKeyedDefaults(player);
+		ManaPipe.dropPlayer(player);
 	}
 }

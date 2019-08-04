@@ -27,11 +27,12 @@ public class cmdAbility2 implements CommandExecutor {
 	@Override
 	public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
 		if (!(src instanceof Player)) { src.sendMessage(Text.of("Console can't do this")); return CommandResult.success(); }
-		Profile profile = Profile.loadOrCreate((Player)src);
-		ActionData data = ActionData.builder(Trigger.ACTIVE2)
-				.setSelf((Player)src)
-				.build();
-		profile.getRaceData().get().fire(profile, data);
+		Profile.getIfActive((Player)src).ifPresent(profile-> {
+			ActionData data = ActionData.builder(Trigger.ACTIVE2)
+					.setSelf((Player) src)
+					.build();
+			profile.getRaceData().get().fire(profile, data);
+		});
 		return CommandResult.success();
 	}
 	

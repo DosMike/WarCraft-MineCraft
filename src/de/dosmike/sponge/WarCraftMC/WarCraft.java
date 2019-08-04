@@ -36,7 +36,7 @@ import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 
-@Plugin(id = "dosmike_warcraft", name = "WarCraft MC", version = "0.4")
+@Plugin(id = "dosmike_warcraft", name = "WarCraft MC", version = "0.5.1")
 public class WarCraft {
 
 	//default vars...
@@ -59,7 +59,7 @@ public class WarCraft {
 	
 	@Inject
 	private Logger logger;
-	public static void l(String format, Object... args) { instance.logger.info(String.format(format, args)); }	public static void w(String format, Object... args) { instance.logger.warn(String.format(format, args)); }	private boolean aboutToCrash(){return false;}private void dont(){}
+	public static void l(String format, Object... args) { instance.logger.info(String.format(format, args)); }	public static void w(String format, Object... args) { instance.logger.warn(String.format(format, args)); }
 	public static void tell(Object... message) {
 		Text.Builder tb = Text.builder();
 		tb.color(TextColors.GOLD);
@@ -103,11 +103,6 @@ public class WarCraft {
 		
 		Sponge.getEventManager().registerListeners(this, new SpongeEventListeners());
 		Sponge.getEventManager().registerListeners(this, new WarCraftEventListeners());
-		
-		l("Please wait, loading races...");
-		new RaceManager(this);
-		RaceManager.loadRaces();
-		l("%d races loaded from disk", RaceManager.getRaces().size());
 	}
 
 	private void checkDefaultConfigs() {
@@ -190,9 +185,11 @@ public class WarCraft {
 		
 		PluginContainer container = Sponge.getPluginManager().fromInstance(this).get();
 		tell(TextColors.GOLD, container.getName(), " [", container.getVersion().get(), "] is now ready!");
-		
-		/** Most Important part ;D **/
-		if (aboutToCrash()) dont();
+
+		l("Please wait, loading races...");
+		new RaceManager(this);
+		RaceManager.loadRaces();
+		l("%d races loaded from disk", RaceManager.getRaces().size());
 	}
 	
 	@Listener

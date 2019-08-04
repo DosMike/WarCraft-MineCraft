@@ -113,6 +113,18 @@ public class BookMenuManager {
 	}
 	
 	/** A menu to improve skills of a player if available
+	 * <pre>
+	 * RACENAME
+	 *   Lvl X ?/??XP
+	 * You can spend ?SP
+	 *
+	 * SKILLNAME
+	 *   [8/8] Maxed out
+	 * SKILLNAME
+	 *   [1/8]
+	 * SKILLNAME
+	 *   requires Lvl 8
+	 * </pre>
 	 * @param player the player for whom to edit the skills */
 	public static void sendRaceMenu(Player player) {
 		Profile profile = Profile.loadOrCreate(player);
@@ -162,6 +174,15 @@ public class BookMenuManager {
 	}
 	
 	/** A menu to rest or skill up a selected (skillIndex) skill
+	 * <pre>
+	 * SKILLNAME:
+	 *   1/8 ████████
+	 *
+	 * You can spend ?SP
+	 *
+	 * [Reset]       [Skill Up]
+	 *       [Race Menu]
+	 * </pre>
 	 * @param player the player for whom to edit the skill
 	 * @param skillIndex skill index as natural number (1 based) */
 	public static void sendSkillMenu(Player player, int skillIndex) {

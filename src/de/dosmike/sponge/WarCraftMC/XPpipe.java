@@ -37,7 +37,14 @@ public class XPpipe {
 	 * Using this option will change your level on change race / active state.
 	 * <li>Replace the WC XP system will use the vanilla system to display your XP progress and level.<br>
 	 * You XP/level before WC will be restored as you leave WC */
-	public static enum Mode { IGNORE, REFLECT, REPLACE }
+	public static enum Mode {
+		/** Ignores the vanilla XP and uses a completely separated custom system */
+		IGNORE,
+		/** Reflect the vanilla XP into warcraft, effectively using the vanilla system */
+		REFLECT,
+		/** Replacing the vanilla XP system with the custom system and push levels into vanilla */
+		REPLACE
+	}
 	
 	static Mode mode;
 	public static Mode getMode() {
@@ -82,6 +89,7 @@ public class XPpipe {
 	/** returns whether to cancel the original event 
 	 * @return true to cancel the original event */
 	public static boolean processVanillaXP(Player player, Profile profile) {
+		assert profile != null : "No profile supplied";
 		if (!profile.getRaceData().isPresent()) return false;
 		RaceData data = profile.getRaceData().get();
 		switch(mode) {
@@ -100,7 +108,7 @@ public class XPpipe {
 			//what happened here is that someone probably was at a enchantment table and lost levels through that, ignore this
 			if (l<wcl) return false; 
 			if (l==wcl && progress <= wcprogress) {
-				return false; //this would equal a xp drain - not implemented yet
+				return false; //this would equal a xp drain - not implemented yet //2019: well no, but actually yes
 			}
 			//the target wc level we have after this 
 			int tl = (l>data.getRace().getMaxLevel() ? data.getRace().getMaxLevel() : l);

@@ -1,6 +1,6 @@
 package de.dosmike.sponge.WarCraftMC.commands;
 
-import java.util.Optional;
+import java.util.*;
 
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
@@ -25,7 +25,20 @@ public class cmdChangerace implements CommandExecutor {
 	public static CommandSpec getCommandSpec() {
 		 return CommandSpec.builder()
 			.description(Text.of("/changerace name - Change your race to a named race"))
-			.arguments(GenericArguments.remainingJoinedStrings(Text.of("Race")))
+			.arguments(
+					GenericArguments.choices(Text.of("Race"),
+							()->{
+								List<String> suggestions = new ArrayList<>();
+								RaceManager.getRaces().forEach(r->{
+									suggestions.add(r.getName());
+									suggestions.add(r.getID());
+								});
+								return suggestions;
+							},
+							//try to get by id, otherwise try name
+							(r)-> RaceManager.getRace(r).orElseGet(()-> RaceManager.getRaceByName(r).orElse(null)),
+							false)
+			)
 			.permission("wc.race.change")
 			.executor(new cmdChangerace())
 			.build();
@@ -34,8 +47,7 @@ public class cmdChangerace implements CommandExecutor {
 	public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
 		if (!(src instanceof Player)) { src.sendMessage(Text.of("Console can't do this")); return CommandResult.success(); }
 		Player player = (Player)src;
-		Optional<Race> to = RaceManager.getRace((String) args.getOne("Race").orElse(""));
-		if (!to.isPresent()) RaceManager.getRaceByName((String)args.getOne("Race").orElse(""));
+		Optional<Race> to = args.getOne("Race");
 		if (!to.isPresent()) {
 			WarCraft.tell(player, "There is no such race");
 		} else {
@@ -48,12 +60,14 @@ public class cmdChangerace implements CommandExecutor {
 					if (profile.switchRace(to.get())){
 						BookMenuManager.sendRaceMenu(player);
 					}
-				} else { //otherwise he'll have to wait for a spawn event to prevent abuse 
+				} else { //otherwise he'll have to wait for a spawn event to prevent abuse
+					final String raceID = to.get().getID();
 					NextSpawnActionManager.force(player, new KeywordedConsumer<Player>("WarCraftChangeRace") {
 						@Override
 						public void accept(Player target) {
 //							if (profile.switchRace(to.get(), NamedCause.source(target))){
-							if (profile.switchRace(to.get())){
+							Race race = RaceManager.getRace(raceID).orElse(null);
+							if (race != null && Profile.loadOrCreate(target).switchRace(race)){
 								BookMenuManager.sendRaceMenu(target);
 							}
 						}

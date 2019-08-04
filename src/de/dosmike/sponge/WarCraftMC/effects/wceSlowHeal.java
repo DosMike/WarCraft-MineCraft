@@ -5,7 +5,7 @@ import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.entity.living.Living;
 
 /** Slowly heal 1 hp every half second over X hp */
-public class wceSlowHeal implements CustomEffect {
+public class wceSlowHeal implements WarCraftCustomEffect {
 
 	private double amount;
 	private double duration;
