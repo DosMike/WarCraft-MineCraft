@@ -5,5 +5,5 @@ All races are completely made up by the races.conf that defines the skills, perk
 
 Take a look at the example race or wiki pages to see how it works.
 
-**Current Version: v0.3 (1.12)**<br>
+**Current Version: v0.5 (1.12.2)**<br>
 Using Sponge API 7.2
