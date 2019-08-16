@@ -10,6 +10,7 @@ Using Sponge API 7.2
 
 **[Version Checker](https://github.com/DosMike/SpongePluginVersionChecker)**  
 This plugin uses a version checker to notify you about available updates.  
-This updater is **disabled by default** and can be enabled in `config/vshop/settings.conf`.  
+This updater is **disabled by default** and can be enabled in `config/dosmike_warcraft/versionchecker.conf`
+by setting the value `enabled` to `true`.    
 If enabled it will asynchronously check (once per server start) if the Ore repository has any updates.  
 This will *only print update notes into the server log*, no files are being downlaoded!
