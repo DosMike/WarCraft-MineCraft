@@ -15,7 +15,7 @@ public class cmdRacelist implements CommandExecutor {
 	
 	public static CommandSpec getCommandSpec() {
 		 return CommandSpec.builder()
-			.description(Text.of("/race [page] - Display a race list"))
+			.description(Text.of("/racelist [page] - Display a race list"))
 			.arguments(GenericArguments.optional(GenericArguments.integer(Text.of("Page"))))
 			.permission("wc.race.list")
 			.executor(new cmdRacelist())
@@ -24,7 +24,7 @@ public class cmdRacelist implements CommandExecutor {
 	@Override
 	public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
 		if (!(src instanceof Player)) { src.sendMessage(Text.of("Console can't do this")); return CommandResult.success(); }
-		int page = (int) args.getOne("Page").orElse(1);
+		int page = args.<Integer>getOne("Page").orElse(1);
 		BookMenuManager.sendRaceSelect((Player)src, page);
 		return CommandResult.success();
 	}

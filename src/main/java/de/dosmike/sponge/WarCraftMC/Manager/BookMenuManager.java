@@ -59,8 +59,8 @@ public class BookMenuManager {
 						}).build());
 			}
 		}
-		if (page > 1) pagetext.append(Text.of("  ", wcUtils.makeClickable("\u226A Previous", "/racemenu "+(page-1))));
-		if (i == pageOptionCount-1 && pageo+i<races.size()) pagetext.append(Text.of("  ", wcUtils.makeClickable("Next \u226B", "/racemenu "+(page+1))));
+		if (page > 1) pagetext.append(Text.of("  ", wcUtils.makeClickable("\u226A Previous", "/racelist "+(page-1))));
+		if (i == pageOptionCount && pageo+i<races.size()) pagetext.append(Text.of("  ", wcUtils.makeClickable("Next \u226B", "/racelist "+(page+1))));
 		sendBook(player, Text.of("WarCraft Races"), pagetext.build());
 	}
 	
