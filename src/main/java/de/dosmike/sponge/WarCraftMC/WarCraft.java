@@ -35,7 +35,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-@Plugin(id = "dosmike_warcraft", name = "WarCraft MC", version = "0.5.1")
+@Plugin(id = "dosmike_warcraft", name = "WarCraft MC", version = "0.5.2")
 public class WarCraft {
 
 	//default vars...
