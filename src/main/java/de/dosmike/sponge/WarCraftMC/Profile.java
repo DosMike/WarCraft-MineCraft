@@ -123,8 +123,8 @@ public class Profile {
 	}
 	/** ensures the player is in wc-area and chose a race */
 	public static Optional<Profile> getIfActive(Player player) {
-		if (!player.isOnline() || !profileCache.containsKey(player)) return Optional.empty();
-		Profile prof = profileCache.get(player); //if online get the profile
+		if (!player.isOnline() || !profileCache.containsKey(player.getUniqueId())) return Optional.empty();
+		Profile prof = profileCache.get(player.getUniqueId()); //if online get the profile
 		if (!isActive(player,prof)) return Optional.empty();
 		return Optional.of(prof);
 	}
