@@ -84,7 +84,7 @@ public class SpongeEventListeners {
 
 		//do something with the data:
 		//fx stuff
-		if (attacker instanceof Player && !event.getOriginal().willCauseDeath()) { //if even willCauseDeath this would just waste mana
+		if (attacker instanceof Player && !event.getOriginal().willCauseDeath()) { //if event willCauseDeath this would just waste mana
 			Optional<Profile> profile = Profile.getIfActive((Player)attacker);
 			ActionData data = ActionData.builder(Trigger.ONATTACK)
 					.setSelf((Player)attacker)
@@ -93,10 +93,12 @@ public class SpongeEventListeners {
 					.build();
 			Optional<SkillResult> result = profile.flatMap(p->p.getRaceData().flatMap(race->race.fire(p, data)));
 			if (result.isPresent()) {
-				if (result.get().get(ResultProperty.CANCEL_ACTION).contains(true)) event.setCancelled(true);
-				else {
+				if (result.get().get(ResultProperty.CANCEL_ACTION).contains(true)) {
+					event.setCancelled(true);
+				} else {
 					Double modifier = 0.0;
-					for (Double mod : result.get().get(ResultProperty.MODIFY_DAMAGE)) modifier+=mod;
+					for (Double mod : result.get().get(ResultProperty.MODIFY_DAMAGE))
+						modifier+=mod;
 					event.getOriginal().setBaseDamage(event.getOriginal().getBaseDamage()+modifier);
 				}
 			}
@@ -110,7 +112,9 @@ public class SpongeEventListeners {
 					.build();
 			Optional<SkillResult> result = profile.flatMap(p->p.getRaceData().flatMap(race->race.fire(p, data)));
 			if (result.isPresent()) {
-				if (result.get().get(ResultProperty.CANCEL_ACTION).contains(true)) event.setCancelled(true);
+				if (result.get().get(ResultProperty.CANCEL_ACTION).contains(true)) {
+					event.setCancelled(true);
+				}
 			}
 		}
 		if (event.getOriginal().willCauseDeath() && target instanceof Player) {
