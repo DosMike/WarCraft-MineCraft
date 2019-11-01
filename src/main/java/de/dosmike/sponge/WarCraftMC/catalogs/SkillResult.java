@@ -36,7 +36,7 @@ public class SkillResult {
 	
 	/** Adds all ResultProperty keys from the other result to this skill result but key */
 	public <T> SkillResult filter(SkillResult other, ResultProperty<T> filter) {
-		for (ResultPropertyHolder<?> h : res)
+		for (ResultPropertyHolder<?> h : other.res)
 			if (!h.getKey().equals(filter)) 
 				res.add(h);
 		return this;
