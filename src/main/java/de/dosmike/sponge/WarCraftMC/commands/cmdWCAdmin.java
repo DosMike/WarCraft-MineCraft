@@ -1,8 +1,10 @@
 package de.dosmike.sponge.WarCraftMC.commands;
 
+import de.dosmike.sponge.WarCraftMC.Manager.PermissionRegistry;
 import de.dosmike.sponge.WarCraftMC.Manager.RaceManager;
 import de.dosmike.sponge.WarCraftMC.Profile;
 import de.dosmike.sponge.WarCraftMC.RaceData;
+import de.dosmike.sponge.WarCraftMC.WarCraft;
 import de.dosmike.sponge.WarCraftMC.XPpipe;
 import de.dosmike.sponge.WarCraftMC.races.Race;
 import org.spongepowered.api.Sponge;
@@ -13,8 +15,8 @@ import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.source.ConsoleSource;
 import org.spongepowered.api.command.spec.CommandExecutor;
-import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.service.permission.PermissionDescription;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 
@@ -32,11 +34,10 @@ public class cmdWCAdmin implements CommandExecutor {
 		OPTION_TYPE.put("Level", 'l');
 	}
 
-	public static CommandSpec getCommandSpec() {
-		 return CommandSpec.builder()
-			.description(Text.of("Usage: /wcadmin <player> give [race] xp|level <amount>",Text.NEW_LINE,
-								"Usage: /wcadmin <player> reset <race>|player",Text.NEW_LINE,
-								"Usage: /wcadmin <player> force <race>"))
+	public static PermissionRegistry.Permission permission = PermissionRegistry.register("admin", "wc.admin", Text.of("Allow access to /wcadmin"), PermissionDescription.ROLE_STAFF);
+	public static LocalizedCommandSpec getCommandSpec() {
+		 return LocalizedCommandSpec.builder()
+			.description("commands.wcadmin.description")
 			.arguments(
 					GenericArguments.seq(
 							GenericArguments.onlyOne(GenericArguments.player(Text.of("player"))),
@@ -75,7 +76,7 @@ public class cmdWCAdmin implements CommandExecutor {
 							)
 					)
 			)
-			.permission("wc.admin")
+			.permission(permission.getId())
 			.executor(new cmdWCAdmin())
 			.build();
 	}
@@ -89,17 +90,19 @@ public class cmdWCAdmin implements CommandExecutor {
 
 		if (args.<Boolean>getOne("action_give").orElse(false)) {
 			if (XPpipe.getMode().equals(XPpipe.Mode.REFLECT)) {
-				throw new CommandException(Text.of(TextColors.RED, "[WC] WarCraft is currently using the Minecraft XP-System, please use /xp"));
+				throw new CommandException(Text.of(TextColors.RED, "[WC] ", WarCraft.T().local("commands.wcadmin.error.vanillaxpsystem").orLiteral(src)));
 			}
 
 			Optional<RaceData> race = args.<Race>getOne("race").map(playerDump::get);
 			if (!race.isPresent()) race = profile.getRaceData(); //no 1 fallback for optional argument
 			if (!race.isPresent()) //fallback 2: player never chose a race and no argument provided
-				throw new CommandException(Text.of("Player "+target.getName()+" has no current race, please specify manually"));
+				throw new CommandException(Text.of(WarCraft.T().local("commands.wcadmin.error.playernorace")
+						.replace("$player", target.getName())
+						.orLiteral(src)));
 			char type = args.<Character>getOne("type").orElse('\0');
 			int amount = args.<Integer>getOne("amount").orElse(0);
 			if (amount < 1)
-				throw new CommandException(Text.of("Amount must be positive"));
+				throw new CommandException(Text.of(WarCraft.T().local("commands.wcadmin.error.positiveamount").orLiteral(src)));
 			if (type == 'x') { //give XP
 				if (race.get().equals(profile.getRaceData().orElse(null))) {
 					//if the player currently has the modified race and update xp bar (replace)
@@ -112,10 +115,25 @@ public class cmdWCAdmin implements CommandExecutor {
 				}
 
 				if (src != target)
-					src.sendMessage(Text.of(TextColors.RED, "[WC] ", TextColors.GOLD, "You granted "+target.getName()+" "+amount+" XP as "+race.get().getRace().getName()));
+					src.sendMessage(Text.of(TextColors.RED, "[WC] ", TextColors.GOLD, WarCraft.T().localText("commands.wcadmin.givexp.admin")
+							.replace("$player", target.getName())
+							.replace("$amount", amount)
+							.replace("$race", race.get().getRace().getName())
+							.orLiteral(src)
+					));
 				if (!(src instanceof ConsoleSource))
-					Sponge.getServer().getConsole().sendMessage(Text.of(TextColors.RED, "[WC] ", TextColors.GOLD, src.getName()+" granted "+target.getName()+" "+amount+" XP as "+race.get().getRace().getName()));
-				target.sendMessage(Text.of(TextColors.RED, "[WC] ", TextColors.GOLD, "You were granted "+amount+" XP as "+race.get().getRace().getName()));
+					Sponge.getServer().getConsole().sendMessage(Text.of(TextColors.RED, "[WC] ", TextColors.GOLD, WarCraft.T().localText("commands.wcadmin.givexp.console")
+							.replace("$admin", src.getName())
+							.replace("$player", target.getName())
+							.replace("$amount", amount)
+							.replace("$race", race.get().getRace().getName())
+							.orLiteral(Sponge.getServer().getConsole())
+					));
+				target.sendMessage(Text.of(TextColors.RED, "[WC] ", TextColors.GOLD, WarCraft.T().localText("commands.wcadmin.givexp.player")
+						.replace("$amount", amount)
+						.replace("$race", race.get().getRace().getName())
+						.orLiteral(target)
+				));
 			} else if (type == 'l') { //give level
 				long XPaccu = 0;
 				RaceData data = race.get();
@@ -135,47 +153,94 @@ public class cmdWCAdmin implements CommandExecutor {
 				}
 
 				if (src != target)
-					src.sendMessage(Text.of(TextColors.RED, "[WC] ", TextColors.GOLD, "You granted "+target.getName()+" "+amount+" Level(s) as "+race.get().getRace().getName()));
+					src.sendMessage(Text.of(TextColors.RED, "[WC] ", TextColors.GOLD, WarCraft.T().localText("commands.wcadmin.givelevel.admin")
+							.replace("$player", target.getName())
+							.replace("$amount", amount)
+							.replace("$race", race.get().getRace().getName())
+							.orLiteral(src)
+					));
 				if (!(src instanceof ConsoleSource))
-					Sponge.getServer().getConsole().sendMessage(Text.of(TextColors.RED, "[WC] ", TextColors.GOLD, src.getName()+" granted "+target.getName()+" "+amount+" Level(s) as "+race.get().getRace().getName()));
-				target.sendMessage(Text.of(TextColors.RED, "[WC] ", TextColors.GOLD, "You were granted "+amount+" Level(s) as "+race.get().getRace().getName()));
+					Sponge.getServer().getConsole().sendMessage(Text.of(TextColors.RED, "[WC] ", TextColors.GOLD, WarCraft.T().localText("commands.wcadmin.givelevel.console")
+							.replace("$admin", src.getName())
+							.replace("$player", target.getName())
+							.replace("$amount", amount)
+							.replace("$race", race.get().getRace().getName())
+							.orLiteral(Sponge.getServer().getConsole())
+					));
+				target.sendMessage(Text.of(TextColors.RED, "[WC] ", TextColors.GOLD, WarCraft.T().localText("commands.wcadmin.givelevel.player")
+						.replace("$amount", amount)
+						.replace("$race", race.get().getRace().getName())
+						.orLiteral(target)
+				));
 			} else throw new CommandException(Text.of("No such option"));
 		} else if (args.<Boolean>getOne("action_reset").orElse(false)) {
-			String s = args.<String>getOne("race").orElseThrow(()->new CommandException(Text.of(TextColors.RED, "[WC] Invalid value for <Race>")));
+			String s = args.<String>getOne("race").orElseThrow(()->new CommandException(Text.of(TextColors.RED, "[WC] ", WarCraft.T().localText("commands.wcadmin.error.nosuchrace").orLiteral(src))));
 			if (s.equalsIgnoreCase("player")) {
 				if (!profile.delete())
-					throw new CommandException(Text.of(TextColors.RED, "[WC] Unable to delete profile "+target.getUniqueId()));
-
+					throw new CommandException(Text.of(TextColors.RED, "[WC] ", WarCraft.T().localText("commands.wcadmin.error.deleteprofile")
+							.replace("$id", target.getUniqueId())
+							.orLiteral(src) ));
 
 				if (src != target)
-					src.sendMessage(Text.of(TextColors.RED, "[WC] ", TextColors.GOLD, "You complete reset "+target.getName()));
+					src.sendMessage(Text.of(TextColors.RED, "[WC] ", TextColors.GOLD, WarCraft.T().localText("commands.wcadmin.resetall.admin")
+							.replace("$player", target.getName())
+							.orLiteral(src)
+					));
 				if (!(src instanceof ConsoleSource))
-					Sponge.getServer().getConsole().sendMessage(Text.of(TextColors.RED, "[WC] ", TextColors.GOLD, src.getName()+" completely reset "+target.getName()));
-				target.sendMessage(Text.of(TextColors.RED, "[WC] ", TextColors.GOLD, "Your account was just reset"));
+					Sponge.getServer().getConsole().sendMessage(Text.of(TextColors.RED, "[WC] ", TextColors.GOLD, WarCraft.T().localText("commands.wcadmin.resetall.console")
+							.replace("$admin", src.getName())
+							.replace("$player", target.getName())
+							.orLiteral(Sponge.getServer().getConsole())
+					));
+				target.sendMessage(Text.of(TextColors.RED, "[WC] ", TextColors.GOLD, WarCraft.T().localText("commands.wcadmin.resetall.player").orLiteral(target)));
 			} else {
 				RaceData race = playerDump.get(
-						RaceManager.getRace(s).orElseThrow(()->new CommandException(Text.of(TextColors.RED, "[WC] Could not find race (IDs are case sensitive)")))
+						RaceManager.getRace(s).orElseThrow(()->new CommandException(Text.of(TextColors.RED, "[WC] ", WarCraft.T().localText("commands.wcadmin.error.nosuchrace").orLiteral(src))))
 				);
 				race.reset();
 				Profile.forceRaceData(target, race);
 
 				if (src != target)
-					src.sendMessage(Text.of(TextColors.RED, "[WC] ", TextColors.GOLD, "You reset the progress of "+target.getName()+" as "+race.getRace().getName()));
+					src.sendMessage(Text.of(TextColors.RED, "[WC] ", TextColors.GOLD, WarCraft.T().localText("commands.wcadmin.resetrace.admin")
+							.replace("$player", target.getName())
+							.replace("$race", race.getRace().getName())
+							.orLiteral(src)
+					));
 				if (!(src instanceof ConsoleSource))
-					Sponge.getServer().getConsole().sendMessage(Text.of(TextColors.RED, "[WC] ", TextColors.GOLD, src.getName()+" reset the progress of "+target.getName()+" as "+race.getRace().getName()));
-				target.sendMessage(Text.of(TextColors.RED, "[WC] ", TextColors.GOLD, "Your progress as "+race.getRace().getName()+" was reset"));
+					Sponge.getServer().getConsole().sendMessage(Text.of(TextColors.RED, "[WC] ", TextColors.GOLD, WarCraft.T().localText("commands.wcadmin.resetrace.console")
+							.replace("$admin", src.getName())
+							.replace("$player", target.getName())
+							.replace("$race", race.getRace().getName())
+							.orLiteral(Sponge.getServer().getConsole())
+					));
+				target.sendMessage(Text.of(TextColors.RED, "[WC] ", TextColors.GOLD, WarCraft.T().localText("")
+						.replace("$race", race.getRace().getName())
+						.orLiteral(target)
+				));
 			}
 		} else if (args.<Boolean>getOne("action_force").orElse(false)) {
 			Race race = args.<Race>getOne("race").get();
 			if (!profile.switchRace(race)) {
-				throw new CommandException(Text.of("Changing race was prevented by another plugin"));
+				throw new CommandException(WarCraft.T().localText("commands.wcadmin.error.forcerace").orLiteral(src));
 			}
 
 			if (src != target)
-				src.sendMessage(Text.of(TextColors.RED, "[WC] ", TextColors.GOLD, "You forced "+target.getName()+" into race "+race.getName()));
+				src.sendMessage(Text.of(TextColors.RED, "[WC] ", TextColors.GOLD, WarCraft.T().localText("commands.wcadmin.forcerace.admin")
+						.replace("$player", target.getName())
+						.replace("$race", race.getName())
+						.orLiteral(src)
+				));
 			if (!(src instanceof ConsoleSource))
-				Sponge.getServer().getConsole().sendMessage(Text.of(TextColors.RED, "[WC] ", TextColors.GOLD, src.getName()+" forced "+target.getName()+" into race "+race.getName()));
-			target.sendMessage(Text.of(TextColors.RED, "[WC] ", TextColors.GOLD, "Your were forced into race "+race.getName()));
+				Sponge.getServer().getConsole().sendMessage(Text.of(TextColors.RED, "[WC] ", TextColors.GOLD, WarCraft.T().localText("commands.wcadmin.forcerace.console")
+						.replace("$admin", src.getName())
+						.replace("$player", target.getName())
+						.replace("$race", race.getName())
+						.orLiteral(Sponge.getServer().getConsole())
+				));
+			target.sendMessage(Text.of(TextColors.RED, "[WC] ", TextColors.GOLD, WarCraft.T().localText("commands.wcadmin.forcerace.player")
+					.replace("$race", race.getName())
+					.orLiteral(target)
+			));
 		} else throw new CommandException(Text.of(TextColors.RED, "[WC] Illegal state :o"));
 
 		return CommandResult.success();

@@ -12,6 +12,10 @@ import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.ConfigurationOptions;
 import ninja.leaping.configurate.objectmapping.serialize.TypeSerializerCollection;
 import ninja.leaping.configurate.objectmapping.serialize.TypeSerializers;
+import org.spongepowered.api.Sponge;
+import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.service.permission.PermissionDescription;
+import org.spongepowered.api.text.Text;
 
 import java.util.*;
 
@@ -32,8 +36,11 @@ public class RaceManager {
 	}
 	
 	/** try to get a race by it's name */
-	public static Optional<Race> getRaceByName(String name) {
-		for (Race r : races.values()) if (r.getName().equalsIgnoreCase(name)) return Optional.of(r); return Optional.empty();
+	public static Optional<Race> getRaceByName(String name, Player locale) {
+		for (Race r : races.values())
+			if (r.getName(locale).equalsIgnoreCase(name))
+				return Optional.of(r);
+		return Optional.empty();
 	}
 
 	public static Collection<Race> getRaces() {
@@ -48,6 +55,7 @@ public class RaceManager {
 		customSerializer.registerType(TypeToken.of(Skill.class), new SkillSerializer());
 		customSerializer.registerType(TypeToken.of(Race.class), new RaceSerializer());
 		ConfigurationOptions options = ConfigurationOptions.defaults().setSerializers(customSerializer);
+		races.values().forEach(PermissionRegistry::unregister);
 		try {
 			ConfigurationNode root = warCraft.getRaceConfig().load(options);
 			Collection<Race> races = root.getNode("races").getValue(ttlr, new LinkedList<Race>());
@@ -72,6 +80,11 @@ public class RaceManager {
 	public static void registerRace(Race r) throws DuplicateIDException {
 		if (races.containsKey(r.getID())) throw new DuplicateIDException("A race with ID "+r.getID()+" is already Registered!");
 		races.put(r.getID(), r);
+
+		PermissionRegistry.register(r,
+				"wc.race.change."+r.getID(),
+				Text.of("Allow the player to change to race "+r.getName(Sponge.getServer().getConsole())),
+				PermissionDescription.ROLE_USER);
 	}
-	
+
 }

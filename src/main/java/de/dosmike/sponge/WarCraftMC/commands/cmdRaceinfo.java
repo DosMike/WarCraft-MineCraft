@@ -10,19 +10,18 @@ import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.spec.CommandExecutor;
-import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.text.Text;
 
 import java.util.Optional;
 
 public class cmdRaceinfo implements CommandExecutor {
-	
-	public static CommandSpec getCommandSpec() {
-		 return CommandSpec.builder()
-			.description(Text.of("/raceinfo name - Display some information about a race"))
+
+	public static LocalizedCommandSpec getCommandSpec() {
+		return LocalizedCommandSpec.builder()
+			.description("commands.raceinfo.description")
 			.arguments(GenericArguments.remainingJoinedStrings(Text.of("Race")))
-			.permission("wc.race.list")
+			.permission(cmdRacelist.permission.getId())
 			.executor(new cmdRaceinfo())
 			.build();
 	}
@@ -31,9 +30,9 @@ public class cmdRaceinfo implements CommandExecutor {
 		if (!(src instanceof Player)) { src.sendMessage(Text.of("Console can't do this")); return CommandResult.success(); }
 		Player player = (Player)src;
 		Optional<Race> to = RaceManager.getRace((String) args.getOne("Race").orElse(""));
-		if (!to.isPresent()) RaceManager.getRaceByName((String)args.getOne("Race").orElse(""));
+		//if (!to.isPresent()) RaceManager.getRaceByName((String)args.getOne("Race").orElse(""));
 		if (!to.isPresent()) {
-			WarCraft.tell(player, "There is no such race");
+			WarCraft.tell(player, WarCraft.T().localText("commands.raceinfo.error.nosuchrace"));
 		} else {
 			BookMenuManager.sendRaceInfo(player, to.get());
 		}

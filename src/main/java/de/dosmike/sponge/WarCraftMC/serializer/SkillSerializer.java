@@ -19,9 +19,9 @@ public class SkillSerializer implements TypeSerializer<Skill> {
 	}
 	
 	@SuppressWarnings("serial")
-	TypeToken<List<String>> ttsl = new TypeToken<List<String>>() {}; 
+	private static final TypeToken<List<String>> ttsl = new TypeToken<List<String>>() {};
 	@SuppressWarnings("serial")
-	TypeToken<List<List<Double>>> ttdaa = new TypeToken<List<List<Double>>>() {};
+	private static final TypeToken<List<List<Double>>> ttdaa = new TypeToken<List<List<Double>>>() {};
 	
 	@Override
 	public Skill deserialize(TypeToken<?> arg0, ConfigurationNode arg1) throws ObjectMappingException {

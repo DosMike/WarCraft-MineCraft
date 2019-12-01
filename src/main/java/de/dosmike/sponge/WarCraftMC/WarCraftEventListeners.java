@@ -7,12 +7,12 @@ import de.dosmike.sponge.WarCraftMC.events.LevelUpEvent;
 import de.dosmike.sponge.WarCraftMC.events.ProfileStateChangeEvent;
 import de.dosmike.sponge.WarCraftMC.races.Action.Trigger;
 import de.dosmike.sponge.WarCraftMC.races.ActionData;
+import de.dosmike.sponge.languageservice.API.Localized;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.Order;
 import org.spongepowered.api.text.Text;
-import org.spongepowered.api.text.format.TextColors;
 
 import java.util.Optional;
 
@@ -26,7 +26,11 @@ public class WarCraftEventListeners {
 //		Optional<Living> target = event.getCause().get(NamedCause.HIT_TARGET, Living.class);
 //		Optional<CommandSource> something = event.getCause().get(NamedCause.SOURCE, CommandSource.class);
 		if (player.isPresent()) {
-			player.get().sendMessage(Text.of(TextColors.GREEN, "[WC] +"+event.getXP()+" XP"));
+			Text text = WarCraft.T().localText("player.getxp")
+					.replace("$xp",event.getXP())
+					.orLiteral(player.get());
+
+			player.get().sendMessage(Text.of(text.getColor(), "[WC] ", text));
 		}
 	}
 	
@@ -34,8 +38,11 @@ public class WarCraftEventListeners {
 	public void onLevelUp(LevelUpEvent event) {
 		if (event.isCancelled()) return;
 		Optional<Player> player = Sponge.getServer().getPlayer(event.getWarCraftProfile().getPlayerID());
-		if (player.isPresent())
-			WarCraft.tell(player.get(), TextColors.GREEN, "You are now level " + event.getFinalLevel());
+		if (player.isPresent()) {
+			Localized text = WarCraft.T().localText("player.levelup")
+					.replace("$level", event.getFinalLevel());
+			WarCraft.tell(player.get(), text);
+		}
 	}
 	
 	
@@ -61,4 +68,5 @@ public class WarCraftEventListeners {
 			ManaPipe.resetMana(event.getPlayer().get());
 		}
 	}
+
 }

@@ -10,13 +10,13 @@ import java.util.Optional;
 
 /** this class shall sanitize the function calls for Skill.fire() and following */
 public class ActionData {
-	Trigger trigger;
-	Optional<Player> self=Optional.empty();
-	Optional<Living> target=Optional.empty();
-	Optional<ItemStack> item=Optional.empty();
-	Optional<Double> damage=Optional.empty();
-	double[] parammap=new double[0];
-	boolean cooldown=false;
+	private Trigger trigger;
+	private Player self=null;
+	private Living target=null;
+	private ItemStack item=null;
+	private Double damage=null;
+	private double[] parammap=new double[0];
+	private boolean cooldown=false;
 	
 	public static Builder builder(Trigger trigger) {
 		return new Builder(trigger);
@@ -40,19 +40,19 @@ public class ActionData {
 			building.parammap=from.parammap;
 		}
 		public Builder setSelf(Player self) {
-			building.self=Optional.of(self);
+			building.self=self;
 			return this;
 		}
 		public Builder setOpponent(Living target) {
-			building.target=Optional.of(target);
+			building.target=target;
 			return this;
 		}
 		public Builder setItem(ItemStack item) {
-			building.item=Optional.of(item);
+			building.item=item;
 			return this;
 		}
 		public Builder setDamage(Double damage) {
-			building.damage=Optional.of(damage);
+			building.damage=damage;
 			return this;
 		}
 		public Builder setParameters(double[] parameter) {
@@ -73,19 +73,19 @@ public class ActionData {
 	}
 
 	public Optional<Player> getSource() {
-		return self;
+		return Optional.ofNullable(self);
 	}
 
 	public Optional<Living> getTarget() {
-		return target;
+		return Optional.ofNullable(target);
 	}
 
 	public Optional<ItemStack> getItem() {
-		return item;
+		return Optional.ofNullable(item);
 	}
 
 	public Optional<Double> getDamage() {
-		return damage;
+		return Optional.ofNullable(damage);
 	}
 
 	public double[] getParammap() {

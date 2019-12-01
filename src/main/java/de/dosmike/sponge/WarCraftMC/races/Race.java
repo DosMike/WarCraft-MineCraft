@@ -3,25 +3,37 @@ package de.dosmike.sponge.WarCraftMC.races;
 import com.dolhub.tech.MathEval;
 import de.dosmike.sponge.WarCraftMC.WarCraft;
 import de.dosmike.sponge.WarCraftMC.races.Action.Trigger;
+import de.dosmike.sponge.languageservice.API.Localized;
+import org.spongepowered.api.command.CommandSource;
 
 import java.util.List;
 import java.util.function.Consumer;
 
 public class Race {
 	static MathEval engine = new MathEval();
-	
-	String id, name;
-	String description;
-	int requiredLevel;
-	int startSkill;
-	int autoMaxLevel;
-	String levelXP;
-	
-	Skill[] skills;
+
+	private String id, name;
+	private String description;
+	private int requiredLevel;
+	private int startSkill;
+	private int autoMaxLevel;
+	private String levelXP;
+
+	private Skill[] skills;
 	
 	public String getID() { return id; }
-	public String getName() { return name; }
-	public String getDescription() { return description; }
+	public Localized<String> getName() {
+		return WarCraft.T().local(name);
+	}
+	public String getName(CommandSource player) {
+		return WarCraft.T().local(name).orLiteral(player);
+	}
+	public Localized<String>  getDescription() {
+		return WarCraft.T().local(description);
+	}
+	public String getDescription(CommandSource player) {
+		return WarCraft.T().local(description).orLiteral(player);
+	}
 	/** returns the global level required to play this race */
 	public int getRequiredLevel() { return requiredLevel; }
 	/** This value is automatically generated in the builder on setSkills<br>
@@ -77,25 +89,25 @@ public class Race {
 		}
 		public Builder setSkills(List<Skill> skills) {
 			building.skills = skills.toArray(new Skill[skills.size()]);
-			if (building.skills.length>0) for (int s=0;s<building.skills[0].actions.length;s++)
-				if (building.skills[0].actions[s].event == Trigger.ACTIVE_INVALID) {
-					building.skills[0].actions[s].event = Trigger.ACTIVE1;
-					building.skills[0].desc += "\n Command: /ability1";
+			if (building.skills.length>0) for (int s=0;s<building.skills[0].getActionCount();s++)
+				if (building.skills[0].getAction(s).event == Trigger.ACTIVE_INVALID) {
+					building.skills[0].getAction(s).event = Trigger.ACTIVE1;
+					building.skills[0].appendDescription(" Command: /ability1");
 				}
-			if (building.skills.length>1) for (int s=0;s<building.skills[1].actions.length;s++)
-				if (building.skills[1].actions[s].event == Trigger.ACTIVE_INVALID) {
-					building.skills[1].actions[s].event = Trigger.ACTIVE2;
-					building.skills[1].desc += "\n Command: /ability2";
+			if (building.skills.length>1) for (int s=0;s<building.skills[1].getActionCount();s++)
+				if (building.skills[1].getAction(s).event == Trigger.ACTIVE_INVALID) {
+					building.skills[1].getAction(s).event = Trigger.ACTIVE2;
+					building.skills[1].appendDescription(" Command: /ability2");
 				}
-			if (building.skills.length>2) for (int s=0;s<building.skills[2].actions.length;s++)
-				if (building.skills[2].actions[s].event == Trigger.ACTIVE_INVALID) {
-					building.skills[2].actions[s].event = Trigger.ACTIVE3;
-					building.skills[2].desc += "\n Command: /ability3";
+			if (building.skills.length>2) for (int s=0;s<building.skills[2].getActionCount();s++)
+				if (building.skills[2].getAction(s).event == Trigger.ACTIVE_INVALID) {
+					building.skills[2].getAction(s).event = Trigger.ACTIVE3;
+					building.skills[2].appendDescription(" Command: /ability3");
 				}
-			if (building.skills.length>3) for (int s=0;s<building.skills[3].actions.length;s++)
-				if (building.skills[3].actions[s].event == Trigger.ACTIVE_INVALID) {
-					building.skills[3].actions[s].event = Trigger.ULTIMATE;
-					building.skills[3].desc += "\n Command: /ultimate";
+			if (building.skills.length>3) for (int s=0;s<building.skills[3].getActionCount();s++)
+				if (building.skills[3].getAction(s).event == Trigger.ACTIVE_INVALID) {
+					building.skills[3].getAction(s).event = Trigger.ULTIMATE;
+					building.skills[3].appendDescription(" Command: /ultimate");
 				}
 			if (building.skills.length>5) {
 				throw new RuntimeException("A race can't have more than 5 skills, the first 4 might use the active trigger, the 5th has to be passive!");

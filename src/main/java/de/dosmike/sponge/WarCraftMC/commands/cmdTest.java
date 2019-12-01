@@ -2,8 +2,8 @@ package de.dosmike.sponge.WarCraftMC.commands;
 
 public class cmdTest /*implements CommandExecutor*/ {
 	
-//	public static CommandSpec getCommandSpec() {
-//		 return CommandSpec.builder()
+//	public static LocalizedCommandSpec getCommandSpec() {
+//		 return LocalizedCommandSpec.builder()
 //			.description(Text.of("?"))
 //			.arguments(GenericArguments.onlyOne(GenericArguments.doubleNum(Text.of("Speed"))))
 //			.permission("wc.race.dont.give")

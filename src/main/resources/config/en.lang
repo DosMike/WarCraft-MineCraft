@@ -1,0 +1,141 @@
+# Internal Strings, these will always be here :)
+player.error.load:It looks like we were unable to restore your race progress...
+player.error.norace:You are not part of any race. Use §4/racemenu§6 to make your choice.
+player.racechange:You are now part of the §6$race
+player.wellcome:Wellcom back, §f$name§6, member of the §f$race
+player.getxp:§a+$xp XP
+player.levelup:§aYou are now level §f$level
+configreload:§aConfigs reloaded!
+commands.ability1.description:/ability1 - Activate your 1. Skill
+commands.ability2.description:/ability2 - Activate your 2. Skill
+commands.ability3.description:/ability3 - Activate your 3. Skill
+commands.ultimate.description:/ultimate - Activate your 4. Skill (Ultimate)
+commands.changerace.description:/changerace name - Change your race to a named race
+commands.changerace.error.nosuchrace:There is no such race
+commands.changerace.error.level:You need level $required to change to that race (currently $current)
+commands.changerace.success:Your race will be changed the next time you spawn
+commands.raceinfo.description:/raceinfo name - Display some information about a race
+commands.raceinfo.error.nosuchrace:There is no such race
+commands.racelist.description:/racelist [page] - Display a race list
+commands.racemenu.description:/racemenu - Take a look at your current race stats
+commands.spendskill.description:/spendskill <Skill> - Open the menu to spend points on a Skill by number
+commands.spendskill.error.skillnumber:Invalid Skill number
+commands.wcadmin.description:/wcadmin <player> give [race] xp|level <amount> OR /wcadmin <player> reset <race>|player OR /wcadmin <player> force <race>
+commands.wcadmin.error.vanillaxpsystem:WarCraft is currently using the Minecraft XP-System, please use /xp
+commands.wcadmin.error.playernorace:Player $name has no current race, please specify manually
+commands.wcadmin.error.positiveamount:Amount must be positive
+commands.wcadmin.givexp.admin:You granted $player $amount XP as $race
+commands.wcadmin.givexp.console:$admin granted $player $amount XP as $race
+commands.wcadmin.givexp.player:You were granted $amount XP as $race
+commands.wcadmin.givelevel.admin:You granted $player $amount Level(s) as $race
+commands.wcadmin.givelevel.console:$admin granted $player $amount Level(s) as $race
+commands.wcadmin.givelevel.player:You were granted $amount XP as $race
+commands.wcadmin.error.nosuchrace:Could not find race (IDs are case sensitive)
+commands.wcadmin.error.deleteprofile:Unable to delete profile $id
+commands.wcadmin.resetall.admin:You complete reset $player
+commands.wcadmin.resetall.console:$admin complete reset $player
+commands.wcadmin.resetall.player:Your account was just reset
+commands.wcadmin.resetrace.admin:You reset the progress of $player as $race
+commands.wcadmin.resetrace.console:$admin reset the progress of $player as $race
+commands.wcadmin.resetrace.player:Your progress as $race was reset
+commands.wcadmin.error.forcerace:Changing race was prevented by another plugin
+commands.wcadmin.forcerace.admin:You forced $player into race $race
+commands.wcadmin.forcerace.console:$admin forced $player into race $race
+commands.wcadmin.forcerace.player:Your were forced into race $race
+bookmenu.racelist.line1:Choose a Race:
+bookmenu.racelist.line2:You global Level is $level
+bookmenu.racelist.entry.selected:§2$number) $race [✔]
+bookmenu.racelist.entry.unlocked:§9$number) $race [$required]
+bookmenu.racelist.entry.locked:§8$number) $race [$level/$required]
+bookmenu.racelist.previous:≪ Previous
+bookmenu.racelist.next:Next ≫
+bookmenu.raceinfo.requiredlevel: Required Level: $level
+bookmenu.raceinfo.unleveled:§9  $number Ranks
+bookmenu.raceinfo.leveled:§8  Lvl $level, $number Ranks
+bookmenu.raceinfo.buttons.format:[LIST]  [CHANGE]
+bookmenu.raceinfo.buttons.list.text:Race List
+bookmenu.raceinfo.buttons.change.text:Change
+bookmenu.raceinfo.buttons.change.hover:§bThe change might not take effect until you respawn
+bookmenu.racemenu.levelinfo:  Lvl $level §4$xp/$required§rXP
+bookmenu.racemenu.levelmax:  Lvl $level §4Max Lvl
+bookmenu.racemenu.skillpoints:You can spend §4$points§rSP
+bookmenu.racemenu.hovermaxed:Maxed out
+bookmenu.racemenu.skillmaxedout:§5§o$skill\n§d  [$progress/$max]
+bookmenu.racemenu.skillprogress:§1$skill\n§9  [$progress/$max]
+bookmenu.racemenu.skillrequires:§8$skill\n  requires Lvl $level
+bookmenu.skillmenu.skillpoints:You can spend §4$points§rSP
+bookmenu.skillmenu.buttons.format1:[RESET]       [SKILLUP]
+bookmenu.skillmenu.buttons.format2:      [RACEMENU]
+bookmenu.skillmenu.buttons.reset.text:Reset
+bookmenu.skillmenu.buttons.skillup.text:Skill Up
+bookmenu.skillmenu.buttons.racemenu.text:Race Menu
+# Strings used in the default races.conf - if you change that config you probably want to update this file
+races.undead.name:Undead Scourge
+races.undead.description:You can leach life energy, move faster and jump with ease. There's a chance you'll explode on death.
+races.undead.leech.name:Vampiric Aura
+races.undead.leech.description:Gives you a 60% change to gain 12-33% of the damage you do in attack, back as health
+races.undead.leech.onactive1:You leeched health from $target
+races.undead.speed.name:Unholy Aura
+races.undead.speed.description:Gives you a speed boost, 8-36% faster.
+races.undead.jumpboost.name:Levitation
+races.undead.jumpboost.description:Allows you to jump 1-8 blocks higher.
+races.undead.explode.name:Suicide Bomber
+races.undead.explode.description:On death, you have a 20-70% chance to explode and damage on each player in 2.5-6 blocks range.
+races.humans.name:Human Aliance
+races.humans.description:You strong body allows you to dodge in brief invisibility, grants you increased health and allows you to stun enemies. You can dash short distances in a blink of an eye.
+races.humans.invis.name:Invisibility
+races.humans.invis.description:When hit, makes you invisible for 2-5 seconds.
+races.humans.hpboost.name:Devotion Aura
+races.humans.hpboost.description:Gives you additional 3-10 additional hearts when you spawn.
+races.humans.bash.name:Bash
+races.humans.bash.description:Have a 15-32% chance to render an enemy immobile for 1-3 second.
+races.humans.bash.onattack1:You've frozen $target
+races.humans.bash.onattack2:$self froze you in place
+races.humans.tp.name:Teleport
+races.humans.tp.description:Allows you to teleport to where you aim, range is 10-24 blocks.
+races.orcs.name:Orcish Horde
+races.orcs.description:Strike with immense strength, and use unique throwable explosives. Your strong mentality allows you to keep fighting and call upong lightning.
+races.orcs.critstrike.name:Critical Strike
+races.orcs.critstrike.description:Gives you a 15% chance of doing 40-240% more damage.
+races.orcs.critstrike.onattack1:You dealt extra damage on $target
+races.orcs.explosive.name:Explosive Charge
+races.orcs.explosive.description:Allows you to throw a grenade with increasing range.
+races.orcs.reinc.name:Reincarnation
+races.orcs.reinc.description:Gives you a 15-80% chance of respawning with old equipment and where you died once every five minutes.
+races.orcs.reinc.ondeath1:You were reincarnated
+races.orcs.reinc.ondeath2:$self was reincarnated
+races.orcs.chainlight.name:Chain Lightning
+races.orcs.chainlight.description:Discharges a bolt of lightning that jumps on up to 4 nearby enemies 5-12 block range, dealing each 3 hearts damage.
+races.orcs.chainlight.active1:$self struck foes around him with lightning
+races.nightelves.name:Night Elves
+races.nightelves.description:Evade attacks with swiftness and use your enemies attacks agains them. Deal bonus damage with elegant moves and call upon shadows to root your enemies.
+races.nightelves.evade.name:Evasion
+races.nightelves.evade.description:Gives you a 5-30% chance of evading damage.
+races.nightelves.evade.onhit1:You evaded $targets attack
+races.nightelves.evade.onhit2:$self evaded your attack
+races.nightelves.mirrordmg.name:Thorns Aura
+races.nightelves.mirrordmg.description:Does 30% mirror damage to the person who attacked you, chance to activate 15-50%.
+races.nightelves.bonusdmg.name:Trueshot Aura
+races.nightelves.bonusdmg.description:Does 10-60% extra damage to the enemy, chance is 30%.
+races.nightelves.bonusdmg.onattack1:You dealt extra damage
+races.nightelves.freeze.name:Entangling Roots
+races.nightelves.freeze.description:Every enemy in 1-8 blocks range will not be able to move for 2 seconds.
+races.nightelves.freeze.active1:$self froze everyone around them
+races.bloodmage.name:Blood Mage
+races.bloodmage.description:Rise from your ashes, confuse your enemies and leech mana from your foes. Use a special ritual to regain health.
+races.bloodmage.confuse.name:Banish
+races.bloodmage.confuse.description:Get 30% chance to confuse the enemy for 1-3 seconds.
+races.bloodmage.siphonmana.name:Siphon Mana
+races.bloodmage.siphonmana.description:Get 30% chance to steal 2-17 mana from the enemy.
+races.bloodmage.siphonmana.onattack1:You leeched some mana
+races.bloodmage.burn.name:Flame Strike
+races.bloodmage.burn.description:On hit, you have a 10-40% chance to burn an enemy for 1-3.5 seconds.
+races.bloodmage.burn.onattack1:You ignited $target
+races.bloodmage.burn.onattack2:You were ignited by $self
+races.bloodmage.health.name:Curing Ritual
+races.bloodmage.health.description:Sacrifice 10 mana to gain 1.5-3 hearts.
+races.bloodmage.health.active1:You heal yourself
+races.bloodmage.respawn.name:Phoenix
+races.bloodmage.respawn.description:You have 15-90% of not dying and igniting the agressor every 5 minutes.
+races.bloodmage.respawn.ondeath1:You rose from your ashes
+races.bloodmage.respawn.ondeath2:$self rose from his ashes

@@ -1,46 +1,47 @@
 package de.dosmike.sponge.WarCraftMC.commands;
 
-import de.dosmike.sponge.WarCraftMC.Manager.BookMenuManager;
-import de.dosmike.sponge.WarCraftMC.Manager.KeywordedConsumer;
-import de.dosmike.sponge.WarCraftMC.Manager.NextSpawnActionManager;
-import de.dosmike.sponge.WarCraftMC.Manager.RaceManager;
+import de.dosmike.sponge.WarCraftMC.Manager.*;
 import de.dosmike.sponge.WarCraftMC.Profile;
 import de.dosmike.sponge.WarCraftMC.WarCraft;
 import de.dosmike.sponge.WarCraftMC.races.Race;
+import de.dosmike.sponge.langswitch.LocalizedText;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.spec.CommandExecutor;
-import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.service.permission.PermissionDescription;
 import org.spongepowered.api.text.Text;
+import org.spongepowered.api.text.format.TextColors;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 public class cmdChangerace implements CommandExecutor {
-	
-	public static CommandSpec getCommandSpec() {
-		 return CommandSpec.builder()
-			.description(Text.of("/changerace name - Change your race to a named race"))
-			.arguments(
+
+	public static PermissionRegistry.Permission permission = PermissionRegistry.register("changerace", "wc.race.change", Text.of("Allow access to /changerace and /spendskill"), PermissionDescription.ROLE_USER);
+	public static LocalizedCommandSpec getCommandSpec() {
+		return LocalizedCommandSpec.builder()
+			.description("commands.changerace.description")
+			.arguments( //can an argument access the caller to provide localized suggestions?
 					GenericArguments.choices(Text.of("Race"),
 							()->{
 								List<String> suggestions = new ArrayList<>();
 								RaceManager.getRaces().forEach(r->{
-									suggestions.add(r.getName());
+									//suggestions.add(r.getName());
 									suggestions.add(r.getID());
 								});
 								return suggestions;
 							},
-							//try to get by id, otherwise try name
-							(r)-> RaceManager.getRace(r).orElseGet(()-> RaceManager.getRaceByName(r).orElse(null)),
+//							//try to get by id, otherwise try name
+//							(r)-> RaceManager.getRace(r).orElseGet(()-> RaceManager.getRaceByName(r).orElse(null)),
+							(r)-> RaceManager.getRace(r).orElse(null),
 							false)
 			)
-			.permission("wc.race.change")
+			.permission(permission.getId())
 			.executor(new cmdChangerace())
 			.build();
 	}
@@ -50,11 +51,21 @@ public class cmdChangerace implements CommandExecutor {
 		Player player = (Player)src;
 		Optional<Race> to = args.getOne("Race");
 		if (!to.isPresent()) {
-			WarCraft.tell(player, "There is no such race");
+			WarCraft.tell(player, WarCraft.T().localText("commands.changerace.error.nosuchrace"));
 		} else {
+			PermissionRegistry.Permission permission = PermissionRegistry.getPermission(to.get());
+			if (!permission.hasPermission(src)) {
+				throw new CommandException(((LocalizedText)WarCraft.T().localText("commands.changerace.error.permission"))
+						.replace("$race", to.get().getName())
+						.replace("$permission", permission.getId())
+						.setContextColor(TextColors.RED)
+						.orLiteral(src));
+			}
 			Profile profile = Profile.loadOrCreate(player);
 			if (profile.getLevel()<to.get().getRequiredLevel()) {
-				WarCraft.tell(player, "You need level " + to.get().getRequiredLevel() + " to change to that race (currently "+profile.getLevel()+")");
+				WarCraft.tell(player, WarCraft.T().localText("commands.changerace.error.level")
+						.replace("$required", to.get().getRequiredLevel())
+						.replace("$current", profile.getLevel()) );
 			} else {
 				if (!profile.getRaceData().isPresent()) { //if the player has no race yet allow him to get one immediately
 //					if (profile.switchRace(to.get(), NamedCause.source(player))){
@@ -73,7 +84,7 @@ public class cmdChangerace implements CommandExecutor {
 							}
 						}
 					});
-					WarCraft.tell(player, "Your race will be changed the next time you spawn"); //switchRace is telling this
+					WarCraft.tell(player, WarCraft.T().localText("commands.changerace.success")); //switchRace is telling this
 				}
 			}
 		}

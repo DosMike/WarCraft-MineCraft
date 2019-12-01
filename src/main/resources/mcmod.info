@@ -1,17 +1,19 @@
 [{
     "modid": "dosmike_warcraft",
     "name": "WarCraft MC",
-    "version": "0.5.4",
+    "version": "0.5.5",
     "description": "Races and Skills, Level and Fight",
     "authorList": [
         "DosMike"
     ],
     "requiredMods": [
     	"spongeapi@7.0.0",
+    	"langswitch@[1.6,)",
     	"dosmike_toolbbox@1.0.1"
     ],
     "dependencies": [
     	"spongeapi@7.0.0",
+    	"langswitch@[1.6,)",
     	"dosmike_toolbbox@1.0.1"
     ]
 }]
