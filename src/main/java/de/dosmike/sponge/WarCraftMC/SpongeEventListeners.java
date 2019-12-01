@@ -27,8 +27,6 @@ import org.spongepowered.api.event.item.inventory.InteractItemEvent;
 import org.spongepowered.api.event.item.inventory.UseItemStackEvent;
 import org.spongepowered.api.event.network.ClientConnectionEvent;
 import org.spongepowered.api.item.ItemTypes;
-import org.spongepowered.api.text.Text;
-import org.spongepowered.api.text.format.TextColors;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -39,8 +37,11 @@ public class SpongeEventListeners {
 	@Listener
 	public void onPlayerJoin(ClientConnectionEvent.Join event) {
 		Profile p = Profile.loadOrCreate(event.getTargetEntity());
-		if (p.getRaceData().isPresent())
-			WarCraft.tell(event.getTargetEntity(), "Wellcom back, ", TextColors.GOLD, event.getTargetEntity().getName(), Text.builder(" of the ").color(TextColors.RESET).build(), p.getRaceData().get().getRace().getName());
+		if (Profile.isActive(event.getTargetEntity(), p) && p.getRaceData().isPresent())
+			WarCraft.tell(event.getTargetEntity(), WarCraft.T().localText("player.wellcome")
+					.replace("$name", event.getTargetEntity().getName())
+					.replace("$race", p.getRaceData().get().getRace().getName())
+					);
 		
 		restoreKeyedDefaults(event.getTargetEntity());
 	}

@@ -1,9 +1,11 @@
 package de.dosmike.sponge.WarCraftMC.races;
 
 import de.dosmike.sponge.WarCraftMC.Manager.SkillManager;
+import de.dosmike.sponge.WarCraftMC.WarCraft;
 import de.dosmike.sponge.WarCraftMC.catalogs.ResultProperty;
 import de.dosmike.sponge.WarCraftMC.catalogs.SkillResult;
 import de.dosmike.sponge.WarCraftMC.exceptions.PrepareOutputException;
+import de.dosmike.sponge.languageservice.API.Localized;
 import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.entity.living.Living;
 import org.spongepowered.api.entity.living.player.Player;
@@ -17,8 +19,8 @@ import java.util.List;
 import java.util.Optional;
 
 public class Output {
-	Method method;
-	Expression[] params;
+	private Method method;
+	private Expression[] params;
 	
 	Output() {
 		
@@ -73,18 +75,30 @@ public class Output {
 	 * Throws exceptions if Expressions can't resolve */
 	public SkillResult fire(ActionData data, SkillResult result) {
 		Object[] paraminstance = new Object[params.length];
+		Class<?>[] methodTypes = method.getParameterTypes();
 		for (int i = 0; i < params.length; i++) {
 			paraminstance[i] = params[i].resolve(data).orElseThrow(()-> {
 				return new RuntimeException("Error while resolving parameter for "+method.getName());
 			});
 			if (paraminstance[i] instanceof String) {
 				String val = ((String)paraminstance[i]);
-				if (val.contains("$self")) val=val.replace("$self", optionalResolve(data.getSource(), ">SELF<"));
-				if (val.contains("$target")) val=val.replace("$target", optionalResolve(data.getTarget(), ">TARGET<"));
-				if (val.contains("$item")) val=val.replace("$item", optionalResolve(data.getItem(), ">ITEM<"));
-				if (val.contains("$damage")) val=val.replace("$damage", optionalResolve(data.getDamage(), ">DAMAGE<"));
-				if (val.contains("$dmgmod")) val=val.replace("$dmgmod", damageModifier(result));
-				paraminstance[i]=val;
+				//auto check if parameter x is allowed as Localized
+				if (i < methodTypes.length && Localized.class.isAssignableFrom(methodTypes[i])) {
+					Localized<String> local = WarCraft.T().local(val);
+					local.replace("$self", optionalResolve(data.getSource(), ">SELF<"));
+					local.replace("$target", optionalResolve(data.getTarget(), ">TARGET<"));
+					local.replace("$item", optionalResolve(data.getItem(), ">ITEM<"));
+					local.replace("$damage", optionalResolve(data.getDamage(), ">DAMAGE<"));
+					local.replace("$dmgmod", damageModifier(result));
+					paraminstance[i]=local;
+				} else {
+					if (val.contains("$self")) val=val.replace("$self", optionalResolve(data.getSource(), ">SELF<"));
+					if (val.contains("$target")) val=val.replace("$target", optionalResolve(data.getTarget(), ">TARGET<"));
+					if (val.contains("$item")) val=val.replace("$item", optionalResolve(data.getItem(), ">ITEM<"));
+					if (val.contains("$damage")) val=val.replace("$damage", optionalResolve(data.getDamage(), ">DAMAGE<"));
+					if (val.contains("$dmgmod")) val=val.replace("$dmgmod", damageModifier(result));
+					paraminstance[i]=val;
+				}
 			}
 		}
 		try {
@@ -93,9 +107,9 @@ public class Output {
 			throw new RuntimeException("Error while invoking skill action "+(method==null?"NOTHING":method.getName())+":"+Arrays.toString(paraminstance), e);
 		}
 	}
-	<T> String optionalResolve(Optional<T> optional, String fallback) {
+	String optionalResolve(Optional<?> optional, String fallback) {
 		if (!optional.isPresent()) return fallback;
-		T value = optional.get();
+		Object value = optional.get();
 		if (value instanceof Player) return ((Player)value).getName();
 		if (value instanceof Living) return ((Living)value).getTranslation().get();
 		if (value instanceof ItemStack) {

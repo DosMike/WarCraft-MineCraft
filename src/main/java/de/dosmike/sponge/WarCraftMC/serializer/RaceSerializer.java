@@ -17,10 +17,10 @@ public class RaceSerializer implements TypeSerializer<Race> {
 		//All i care about is that i can read the config with one line of code in the end... that's all
 	}
 	
+//	@SuppressWarnings("serial")
+//	TypeToken<List<Long>> ttla = new TypeToken<List<Long>>(){};
 	@SuppressWarnings("serial")
-	TypeToken<List<Long>> ttla = new TypeToken<List<Long>>(){};
-	@SuppressWarnings("serial")
-	TypeToken<List<Skill>> ttls = new TypeToken<List<Skill>>(){};
+	private static final TypeToken<List<Skill>> ttls = new TypeToken<List<Skill>>(){};
 	
 	@Override
 	public Race deserialize(TypeToken<?> arg0, ConfigurationNode arg1) throws ObjectMappingException {

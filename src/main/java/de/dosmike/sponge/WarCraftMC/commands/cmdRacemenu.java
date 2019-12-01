@@ -1,22 +1,24 @@
 package de.dosmike.sponge.WarCraftMC.commands;
 
 import de.dosmike.sponge.WarCraftMC.Manager.BookMenuManager;
+import de.dosmike.sponge.WarCraftMC.Manager.PermissionRegistry;
 import de.dosmike.sponge.WarCraftMC.Profile;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.spec.CommandExecutor;
-import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.service.permission.PermissionDescription;
 import org.spongepowered.api.text.Text;
 
 public class cmdRacemenu implements CommandExecutor {
-	
-	public static CommandSpec getCommandSpec() {
-		 return CommandSpec.builder()
-			.description(Text.of("/racemenu - Take a look at your current race stats"))
-			.permission("wc.race.menu")
+
+	public static PermissionRegistry.Permission permission = PermissionRegistry.register("racemenu", "wc.race.menu", Text.of("Allow access to /racemenu"), PermissionDescription.ROLE_USER);
+	public static LocalizedCommandSpec getCommandSpec() {
+		 return LocalizedCommandSpec.builder()
+			.description("commands.racemenu.description")
+			.permission(permission.getId())
 			.executor(new cmdRacemenu())
 			.build();
 	}

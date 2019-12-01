@@ -9,7 +9,25 @@ import org.spongepowered.api.item.inventory.ItemStack;
 import java.util.Optional;
 
 public class ConditionComparator extends Condition {
-	public static enum CompareMethod { ABOVE, BELOW, TEAMMATE, OPPONENT, OFTYPE, NOTTYPE }
+	public static enum CompareMethod {
+		ABOVE,
+		BELOW,
+		TEAMMATE,
+		OPPONENT,
+		OFTYPE,
+		NOTTYPE,
+		EQUALS,
+		UNEQUAL,
+		MINIMUM,
+		MAXIMUM,
+		// I want Batch like names as well
+		EQU,
+		NEQ,
+		LSS,
+		GTR,
+		GEQ,
+		LEQ,
+	}
 	
 	String from;
 	Expression a, b;
@@ -42,15 +60,35 @@ public class ConditionComparator extends Condition {
 		Object x = vala.get(), y = valb.get();
 		switch (method) {
 		case ABOVE:
+		case GTR:
 			if (x instanceof Number && y instanceof Number) {
-//				WarCraft.l("Compare ABOVE: "+x+", "+y);
 				return ((Number)x).doubleValue()>((Number)y).doubleValue();
 			} else throw new ConditionFailedException(String.format("Can't compare non-numerics with ABOVE: [%s] [%s]", x, y));
 		case BELOW:
+		case LSS:
 			if (x instanceof Number && y instanceof Number) {
-//				WarCraft.l("Compare BELOW: "+x+", "+y);
 				return ((Number)x).doubleValue()<((Number)y).doubleValue();
 			} else throw new ConditionFailedException(String.format("Can't compare non-numerics with BELOW: [%s] [%s]", x, y));
+		case EQUALS:
+		case EQU:
+			if (x instanceof Number && y instanceof Number) {
+				return ((Number)x).doubleValue()==((Number)y).doubleValue();
+			} else throw new ConditionFailedException(String.format("Can't compare non-numerics with EQUALS: [%s] [%s]", x, y));
+		case UNEQUAL:
+		case NEQ:
+			if (x instanceof Number && y instanceof Number) {
+				return ((Number)x).doubleValue()!=((Number)y).doubleValue();
+			} else throw new ConditionFailedException(String.format("Can't compare non-numerics with UNEQUAL: [%s] [%s]", x, y));
+		case MAXIMUM:
+		case LEQ:
+			if (x instanceof Number && y instanceof Number) {
+				return ((Number)x).doubleValue()<=((Number)y).doubleValue();
+			} else throw new ConditionFailedException(String.format("Can't compare non-numerics with MAXIMUM: [%s] [%s]", x, y));
+		case MINIMUM:
+		case GEQ:
+			if (x instanceof Number && y instanceof Number) {
+				return ((Number)x).doubleValue()>=((Number)y).doubleValue();
+			} else throw new ConditionFailedException(String.format("Can't compare non-numerics with MINIMUM: [%s] [%s]", x, y));
 		case TEAMMATE:
 			if (x instanceof Living && y instanceof Living) return wcUtils.sameTeamAs(data.getSource().get(), data.getTarget().get());
 			else throw new ConditionFailedException("Can only compare teams for players");

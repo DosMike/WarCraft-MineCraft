@@ -1,5 +1,6 @@
 package de.dosmike.sponge.WarCraftMC;
 
+import de.dosmike.sponge.WarCraftMC.Manager.PermissionRegistry;
 import de.dosmike.sponge.WarCraftMC.Manager.PlayerStateManager;
 import de.dosmike.sponge.WarCraftMC.Manager.RaceManager;
 import de.dosmike.sponge.WarCraftMC.events.ChangeRaceEvent;
@@ -19,7 +20,6 @@ import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.entity.living.player.gamemode.GameMode;
 import org.spongepowered.api.entity.living.player.gamemode.GameModes;
-import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 
 import java.io.File;
@@ -50,7 +50,8 @@ public class Profile {
 	public static boolean isActive(Player player, Profile optionalProfile) {
 		GameMode gm = player.get(Keys.GAME_MODE).get();
 		if (gm.equals(GameModes.SPECTATOR)) return false;
-		if (WarCraft.activePermission!=null && !player.hasPermission(WarCraft.activePermission)) return false;
+		if (!PermissionRegistry.hasPermission(player, "active", true)) return false;
+		//if (WarCraft.activePermission!=null && !player.hasPermission(WarCraft.activePermission)) return false;
 		if (WarCraft.inactiveWorlds.contains(player.getWorld().getName())) return false;
 		if (optionalProfile == null)
 			optionalProfile = Profile.getIfOnline(player.getUniqueId()).orElse(null);
@@ -102,11 +103,12 @@ public class Profile {
 			if (r.isPresent()) {
 				p.racedata = RaceData.loadOrCreate(r.get(), root.getNode("races"));
 				if (p.racedata==null) {
-					WarCraft.tell(player, TextColors.GOLD, "It looks like we were unable to restore your race progress...");
+					WarCraft.tell(player, TextColors.GOLD, WarCraft.T().localText("profile.error.load"));
 					WarCraft.w("%s might have lost race progress!", player.toString());
 				}
 			} else {
-				WarCraft.tell(player, TextColors.GOLD, "Are not part of any race. Use ", wcUtils.makeClickable("/racelist").build(), " to make your choice.");
+				WarCraft.tell(player, TextColors.GOLD, WarCraft.T().localText("profile.error.norace")
+                                .replace("/racelist",  wcUtils.makeClickable("/racelist").build()));
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -219,7 +221,10 @@ public class Profile {
 			if (to != null) {
 				racedata = RaceData.loadOrCreate(to, root.getNode("races"));
 				Optional<Player> op = Sponge.getServer().getPlayer(playerID);
-				if (op.isPresent()) WarCraft.tell(op.get(), "You are now part of the ", Text.of(TextColors.GOLD, to.getName()));
+				if (op.isPresent()) {
+					WarCraft.tell(op.get(), WarCraft.T().localText("profile.racechange")
+                            .replace("$race", to.getName()));
+				}
 //				XPpipe.processWarCraftXP(this, 0, new EventCause(cause).get());
 				XPpipe.processWarCraftXP(this, 0);
 //				pushXP(0, new EventCause(cause).get());

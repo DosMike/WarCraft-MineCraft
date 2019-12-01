@@ -2,20 +2,20 @@ package de.dosmike.sponge.WarCraftMC.Manager;
 
 import de.dosmike.sponge.WarCraftMC.Profile;
 import de.dosmike.sponge.WarCraftMC.RaceData;
+import de.dosmike.sponge.WarCraftMC.WarCraft;
 import de.dosmike.sponge.WarCraftMC.races.Race;
 import de.dosmike.sponge.WarCraftMC.races.Skill;
 import de.dosmike.sponge.WarCraftMC.wcUtils;
+import de.dosmike.sponge.langswitch.LocalizedText;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.text.BookView;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.action.TextActions;
 import org.spongepowered.api.text.format.TextColors;
-import org.spongepowered.api.text.format.TextStyles;
 
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Optional;
 
 public class BookMenuManager {
 	static final int pageOptionCount=10; 
@@ -34,33 +34,54 @@ public class BookMenuManager {
 		
 		if (pageo>races.size()) return;
 		Text.Builder pagetext = Text.builder();
-		pagetext.append(Text.of("Choose a Race:\nYou global Level is "+ profile.getLevel() +"\n\n"));
+        pagetext.append(Text.of(
+                WarCraft.T().localText("bookmenu.racelist.line1").orLiteral(player), Text.NEW_LINE,
+                WarCraft.T().localText("bookmenu.racelist.line2")
+                        .replace("$level", profile.getLevel())
+                        .orLiteral(player)
+        ), Text.NEW_LINE, Text.NEW_LINE);
 		int i=0;
 		String currentRace = profile.getRaceData().isPresent()?profile.getRaceData().get().getRace().getID():null;
 		for (; i<pageOptionCount && pageo+i<races.size(); i++) {
 			Race race = races.get(pageo+i);
 			if (race.getID().equals(currentRace)) {
-				pagetext.append(
-						wcUtils.makeClickable(Text.of(TextColors.DARK_GREEN, (pageo+i+1) + ") " + race.getName() + " [\u2714]", Text.NEW_LINE), 
-								src->{
-							sendRaceMenu((Player)src);
-						}).build());
+			    Text text = WarCraft.T().localText("bookmenu.racelist.entry.selected")
+                        .replace("$number", page+i+1)
+                        .replace("$race", race.getName())
+                        .orLiteral(player);
+			    pagetext.append(wcUtils.makeClickable(text, src->{
+                    sendRaceMenu((Player)src);
+                }).build(), Text.NEW_LINE);
 			} else if (profile.getLevel() >= race.getRequiredLevel()) {
-				pagetext.append(
-						wcUtils.makeClickable(Text.of(TextColors.BLUE, (pageo+i+1) + ") " + race.getName() + " ["+race.getRequiredLevel()+"]", Text.NEW_LINE),
-								src->{
-							sendRaceInfo((Player)src, race, page);
-						}).build());
+			    Text text = WarCraft.T().localText("bookmenu.racelist.entry.unlocked")
+                        .replace("$number", page+i+1)
+                        .replace("$race", race.getName())
+                        .replace("$required", race.getRequiredLevel())
+                        .orLiteral(player);
+			    pagetext.append(wcUtils.makeClickable(text, src->{
+			        sendRaceInfo((Player)src, race, page);
+                }).build(), Text.NEW_LINE);
 			} else {
-				pagetext.append(
-						wcUtils.makeClickable(Text.of(TextColors.DARK_GRAY, (pageo+i+1) + ") " + race.getName() + " ["+profile.getLevel()+"/"+race.getRequiredLevel()+"]", Text.NEW_LINE),
-								src->{
-							sendRaceInfo((Player)src, race, page);
-						}).build());
+			    Text text = WarCraft.T().localText("bookmenu.racelist.entry.locked")
+                        .replace("$number", page+i+1)
+                        .replace("$race", race.getName())
+                        .replace("$level", profile.getLevel())
+                        .replace("$required", race.getRequiredLevel())
+                        .orLiteral(player);
+			    pagetext.append(wcUtils.makeClickable(text, src->{
+			        sendRaceInfo((Player)src, race, page);
+                }).build(), Text.NEW_LINE);
 			}
 		}
-		if (page > 1) pagetext.append(Text.of("  ", wcUtils.makeClickable("\u226A Previous", "/racelist "+(page-1))));
-		if (i == pageOptionCount && pageo+i<races.size()) pagetext.append(Text.of("  ", wcUtils.makeClickable("Next \u226B", "/racelist "+(page+1))));
+		pagetext.append(Text.of(TextColors.RESET));
+		if (page > 1) {
+		    Text button = WarCraft.T().localText("bookmenu.racelist.previous").orLiteral(player);
+		    pagetext.append(Text.of("  ", wcUtils.makeClickable(button, "/racelist "+(page-1))));
+        }
+		if (i == pageOptionCount && pageo+i<races.size()) {
+		    Text button = WarCraft.T().localText("bookmenu.racelist.next").orLiteral(player);
+		    pagetext.append(Text.of("  ", wcUtils.makeClickable(button, "/racelist "+(page+1))));
+        }
 		sendBook(player, Text.of("WarCraft Races"), pagetext.build());
 	}
 	
@@ -70,7 +91,7 @@ public class BookMenuManager {
 	public static void sendRaceInfo(Player player, Race race, int pagefrom) {
 		Profile profile = Profile.loadOrCreate(player);
 		
-		String desc = race.getDescription();
+		String desc = race.getDescription(player);
 		List<Text> descpages = new LinkedList<>();
 		if (!desc.trim().isEmpty()) {
 //			WarCraft.l("Desc: "+desc);
@@ -85,30 +106,59 @@ public class BookMenuManager {
 		}
 		
 		Text.Builder page1 = Text.builder();
-		page1.append(Text.of(TextColors.DARK_GREEN, race.getName(), TextColors.RESET, "\n Required Level: ", race.getRequiredLevel(), "\n\n"));
+        {
+            Text text = WarCraft.T().localText("bookmenu.raceinfo.requiredlevel")
+                    .replace("$level", race.getRequiredLevel())
+                    .orLiteral(player);
+            page1.append(Text.of(TextColors.DARK_GREEN, race.getName(player)), Text.NEW_LINE,
+                    /*TextColors.RESET, */text, Text.NEW_LINE, Text.NEW_LINE);
+        }
 		
 		for (int i = 0; i < race.getSkillCount(); i++) {
 			Skill skill = race.getSkill(i);
-			if (skill.getSkillLevel()==0)
-				page1.append(Text.builder()
-						.append(Text.of(TextColors.DARK_BLUE, skill.getName(), TextColors.BLUE, "\n  ", skill.getMaxSkill(), " Ranks\n"))
-						.onHover(TextActions.showText(Text.of(skill.getDescription()))).build())
-						.build();
-			else
-				page1.append(Text.builder()
-						.append(Text.of(TextColors.DARK_GRAY, skill.getName(), "\n  Lvl ", skill.getSkillLevel(), ", ", skill.getMaxSkill(), " Ranks\n"))
-						.onHover(TextActions.showText(Text.of(skill.getDescription())))
-						.build());
+			if (skill.getSkillLevel()==0) {
+			    Text text = WarCraft.T().localText("bookmenu.raceinfo.unleveled")
+                        .replace("$number", skill.getMaxSkill())
+                        .orLiteral(player);
+                page1.append(Text.builder()
+                        .append(Text.of(TextColors.DARK_BLUE, skill.getName(player), Text.NEW_LINE,
+                                text, Text.NEW_LINE))
+                        .onHover(TextActions.showText(Text.of(skill.getDescription(player)))).build())
+                        .build();
+            } else {
+			    Text text = WarCraft.T().localText("bookmenu.raceinfo.leveled")
+                        .replace("$level", skill.getSkillLevel())
+                        .replace("$number", skill.getMaxSkill())
+                        .orLiteral(player);
+                page1.append(Text.builder()
+                        .append(Text.of(TextColors.DARK_GRAY, skill.getName(player), Text.NEW_LINE,
+                                text, Text.NEW_LINE))
+                        .onHover(TextActions.showText(Text.of(skill.getDescription(player))))
+                        .build());
+            }
 		}
-		
-		page1.append(Text.of(TextColors.RESET, "[", wcUtils.makeClickable("Race List", "/racelist "+pagefrom).build(), TextColors.RESET, "]  [", 
-				profile.getLevel() >= race.getRequiredLevel()
-				? wcUtils.makeClickable("Change", "/changerace "+race.getID()).onHover(TextActions.showText(Text.of("The change might not take effect until you respawn"))).color(TextColors.DARK_AQUA).build()
-				: Text.of("Change"),
-				TextColors.RESET, "]"));
+
+		Text bnRaceList = wcUtils.makeClickable(WarCraft.T().local("bookmenu.raceinfo.buttons.list.text").orLiteral(player),
+                "/racelist "+pagefrom).build();
+		Text bnChange;
+		if (profile.getLevel() >= race.getRequiredLevel()) {
+            bnChange = wcUtils.makeClickable(WarCraft.T().local("bookmenu.raceinfo.buttons.change.text").orLiteral(player), "/changerace "+race.getID())
+                    .onHover(TextActions.showText(WarCraft.T().localText("bookmenu.raceinfo.buttons.change.hover").orLiteral(player)))
+                    .color(TextColors.DARK_AQUA)
+                    .build();
+        } else {
+            bnChange = Text.of(WarCraft.T().local("bookmenu.raceinfo.buttons.change.text").orLiteral(player));
+        }
+		page1.append(Text.NEW_LINE);
+		Text format = ((LocalizedText)WarCraft.T().localText("bookmenu.raceinfo.buttons.format"))
+                .replace("LIST", bnRaceList)
+                .replace("CHANGE", bnChange)
+				.setContextColor(TextColors.DARK_GRAY)
+                .orLiteral(player);
+		page1.append(format);
 		
 		descpages.add(0, page1.build());
-		sendBook(player, Text.of("RaceInfo " + race.getName()), descpages.toArray(new Text[descpages.size()]));
+		sendBook(player, Text.of("RaceInfo " + race.getName(player)), descpages.toArray(new Text[descpages.size()]));
 	}
 	
 	/** A menu to improve skills of a player if available
@@ -126,50 +176,80 @@ public class BookMenuManager {
 	 * </pre>
 	 * @param player the player for whom to edit the skills */
 	public static void sendRaceMenu(Player player) {
-		Profile profile = Profile.loadOrCreate(player);
-		if (!profile.getRaceData().isPresent()) return;
-		RaceData data = profile.getRaceData().get();
-		
-		String desc = data.getRace().getDescription();
-		List<Text> descpages = new LinkedList<>();
-		if (!desc.trim().isEmpty()) {
+        Profile profile = Profile.loadOrCreate(player);
+        if (!profile.getRaceData().isPresent()) return;
+        RaceData data = profile.getRaceData().get();
+
+        String desc = data.getRace().getDescription(player);
+        List<Text> descpages = new LinkedList<>();
+        if (!desc.trim().isEmpty()) {
 //			WarCraft.l("Desc: "+desc);
-			do {
-				String page = desc.substring(0, Math.min(200, desc.length()));
-				if (page.length()==200) page = page.substring(0, page.lastIndexOf(' '));
-				if (page.isEmpty()) break;
+            do {
+                String page = desc.substring(0, Math.min(200, desc.length()));
+                if (page.length() == 200) page = page.substring(0, page.lastIndexOf(' '));
+                if (page.isEmpty()) break;
 //				WarCraft.l("Page: " + page);
-				descpages.add(Text.of(page.trim()));
-				desc = desc.substring(page.length());
-			} while (!desc.isEmpty());
-		}
-		
-		Text.Builder page1 = Text.builder();
-		page1.append(Text.of(TextColors.DARK_GREEN, data.getRace().getName(), TextColors.RESET, "\n  Lvl ", data.getLevel()));
-		if (data.getLevel()==data.getRace().getMaxLevel())
-			page1.append(Text.of(TextColors.DARK_RED, "  Max Lvl", TextColors.RESET, "\n\n"));
-		else
-			page1.append(Text.of(TextColors.DARK_RED, " ", data.getXP(), "/", data.getRace().getLevelXp(data.getLevel()), TextColors.RESET, "XP\n"));
-		page1.append(Text.of("You can spend ", TextColors.DARK_RED, data.getSkillPoints(), TextColors.RESET, "SP\n\n"));
+                descpages.add(Text.of(page.trim()));
+                desc = desc.substring(page.length());
+            } while (!desc.isEmpty());
+        }
+
+        Text.Builder page1 = Text.builder();
+        page1.append(Text.of(TextColors.DARK_GREEN, data.getRace().getName(player), TextColors.RESET, Text.NEW_LINE));
+
+        if (data.getLevel() == data.getRace().getMaxLevel()) {
+            Text text = WarCraft.T().localText("bookmenu.racemenu.levelmax")
+                    .replace("$level", data.getLevel())
+                    .orLiteral(player);
+            page1.append(Text.of(text, TextColors.RESET, Text.NEW_LINE));
+        } else {
+            Text text = WarCraft.T().localText("bookmenu.racemenu.levelinfo")
+                    .replace("$level", data.getLevel())
+                    .replace("$xp", data.getXP())
+                    .replace("$required", data.getRace().getLevelXp(data.getLevel()))
+                    .orLiteral(player);
+            page1.append(text, Text.NEW_LINE);
+        }
+        {
+            Text text = WarCraft.T().localText("bookmenu.racemenu.skillpoints")
+                    .replace("$points", data.getSkillPoints())
+                    .orLiteral(player);
+            page1.append(Text.of(text, TextColors.RESET, Text.NEW_LINE, Text.NEW_LINE));
+        }
 		
 		for (int i = 0; i < data.getRace().getSkillCount(); i++) {
 			Skill skill = data.getRace().getSkill(i);
 			if (skill.getMaxSkill() == data.getSkillProgress(i)) {
-				page1.append(
-						wcUtils.makeClickable(Text.of(TextColors.DARK_PURPLE, TextStyles.ITALIC, skill.getName(), TextStyles.RESET, TextColors.LIGHT_PURPLE, "\n  [", data.getSkillProgress(i), "/", skill.getMaxSkill(), "]\n"), "/spendskill "+(i+1))
-						.onHover(TextActions.showText(Text.of(TextColors.GOLD, "Maxed out\n", TextColors.RESET, skill.getDescription()))).build());
-			} else if (data.getLevel()>=skill.getSkillLevel())
-				page1.append(
-						wcUtils.makeClickable(Text.of(TextColors.DARK_BLUE, skill.getName(), TextColors.BLUE, "\n  [", data.getSkillProgress(i), "/", skill.getMaxSkill(), "]\n"), "/spendskill "+(i+1))
-						.onHover(TextActions.showText(Text.of(skill.getDescription()))).build());
-			else
-				page1.append(Text.builder()
-						.append(Text.of(TextColors.DARK_GRAY, skill.getName(), "\n  reqires Lvl ", skill.getSkillLevel(), "\n"))
-						.onHover(TextActions.showText(Text.of(skill.getDescription()))).build());
+			    Text text = Text.of(WarCraft.T().localText("bookmenu.racemenu.skillmaxedout")
+                        .replace("\\n", Text.NEW_LINE)
+                        .replace("$skill", skill.getName())
+                        .replace("$progress", data.getSkillProgress(i))
+                        .replace("$max", skill.getMaxSkill())
+                        .orLiteral(player), Text.NEW_LINE);
+				page1.append(wcUtils.makeClickable(text, "/spendskill "+(i+1))
+						.onHover(TextActions.showText(Text.of(TextColors.GOLD, WarCraft.T().localText("bookmenu.racemenu.hovermaxed").orLiteral(player), Text.NEW_LINE, TextColors.RESET, skill.getDescription(player)))).build());
+			} else if (data.getLevel()>=skill.getSkillLevel()) {
+			    Text text = Text.of(WarCraft.T().localText("bookmenu.racemenu.skillprogress")
+                        .replace("\\n", Text.NEW_LINE)
+                        .replace("$skill", skill.getName())
+                        .replace("$progress", data.getSkillProgress(i))
+                        .replace("$max", skill.getMaxSkill())
+                        .orLiteral(player), Text.NEW_LINE);
+                page1.append(wcUtils.makeClickable(text, "/spendskill " + (i + 1))
+                        .onHover(TextActions.showText(Text.of(skill.getDescription(player)))).build());
+            } else {
+			    Text text = Text.of(WarCraft.T().localText("bookmenu.racemenu.skillrequires")
+                        .replace("\\n", Text.NEW_LINE)
+                        .replace("$skill", skill.getName())
+                        .replace("$level", skill.getSkillLevel())
+                        .orLiteral(player), Text.NEW_LINE);
+                page1.append(Text.builder().append(text)
+                        .onHover(TextActions.showText(Text.of(skill.getDescription(player)))).build());
+            }
 		}
 		
 		descpages.add(0, page1.build());
-		sendBook(player, Text.of("RaceMenu " + data.getRace().getName()), descpages.toArray(new Text[descpages.size()]));
+		sendBook(player, Text.of("RaceMenu " + data.getRace().getName(player)), descpages.toArray(new Text[descpages.size()]));
 	}
 	
 	/** A menu to rest or skill up a selected (skillIndex) skill
@@ -194,37 +274,54 @@ public class BookMenuManager {
 		int skillProg = data.getSkillProgress(skillIndex-1);
 		
 		Text.Builder page = Text.builder();
-		page.append(Text.of(TextColors.DARK_GREEN, skill.getName(), ":\n", TextColors.RESET));
+		//render skill progress bar
+		page.append(Text.of(TextColors.DARK_GREEN, skill.getName(player), ":\n", TextColors.RESET));
 		String s = ""; for (int i=0; i < skillProg; i++) s+='\u2588';
 		String s2 = ""; for (int i=skillProg; i < skill.getMaxSkill(); i++) s2+='\u2588';
 		page.append(Text.of("  ", skillProg, "/", skill.getMaxSkill(), " ", (!s.isEmpty()?Text.of(TextColors.GREEN, s):Text.EMPTY), TextColors.DARK_GRAY, s2, TextColors.RESET));
+
+		page.append(Text.NEW_LINE, Text.NEW_LINE, WarCraft.T().localText("bookmenu.skillmenu.skillpoints")
+                .replace("$points", data.getSkillPoints())
+                .orLiteral(player), Text.NEW_LINE, Text.NEW_LINE
+        );
+
+		Text bnReset, bnSkillUp, bnRaceMenu;
+		if (skillProg>0) {
+		    bnReset = wcUtils.makeClickable(WarCraft.T().local("bookmenu.skillmenu.buttons.reset.text").orLiteral(player), src->{
+		        profile.getRaceData().ifPresent(d->d.resetSkill(skillIndex-1));
+		        sendSkillMenu(player, skillIndex);
+            }).color(TextColors.DARK_RED).build();
+        } else {
+		    bnReset = Text.of(WarCraft.T().local("bookmenu.skillmenu.buttons.reset.text"));
+        }
+		if (skillProg<skill.getMaxSkill() && data.getSkillPoints()>0) {
+		    bnSkillUp = wcUtils.makeClickable(WarCraft.T().local("bookmenu.skillmenu.buttons.skillup.text").orLiteral(player), src->{
+		        profile.getRaceData().ifPresent(d->d.spendSkill(skillIndex-1));
+		        sendSkillMenu(player, skillIndex);
+            }).color(TextColors.DARK_GREEN).build();
+        } else {
+            bnSkillUp = Text.of(WarCraft.T().local("bookmenu.skillmenu.buttons.skillup.text"));
+        }
+		bnRaceMenu = wcUtils.makeClickable(WarCraft.T().local("bookmenu.skillmenu.buttons.racemenu.text").orLiteral(player), "/racemenu")
+                .color(TextColors.DARK_AQUA).build();
+
+		Text format1 = ((LocalizedText)WarCraft.T().localText("bookmenu.skillmenu.buttons.format1"))
+                .replace("RESET", bnReset)
+                .replace("SKILLUP", bnSkillUp)
+				.setContextColor(TextColors.DARK_GRAY)
+                .orLiteral(player);
+		Text format2 = ((LocalizedText)WarCraft.T().localText("bookmenu.skillmenu.buttons.format2"))
+                .replace("RACEMENU", bnRaceMenu)
+				.setContextColor(TextColors.DARK_GRAY)
+                .orLiteral(player);
+        page.append(format1, Text.NEW_LINE,
+                format2, Text.NEW_LINE, Text.NEW_LINE,
+                Text.of(skill.getDescription(player)));
 		
-		page.append(Text.of("\n\nYou can spend ", TextColors.DARK_RED, data.getSkillPoints(), TextColors.RESET,"SP\n\n"));
-		
-		page.append(Text.of("[",
-		(skillProg>0
-		?	wcUtils.makeClickable("Reset", clicking -> {
-			Optional<RaceData> maybe = profile.getRaceData();
-			if (maybe.isPresent()) maybe.get().resetSkill(skillIndex-1);
-			sendSkillMenu(player, skillIndex);
-		}).color(TextColors.DARK_RED).build()
-		:   Text.of("Reset")),
-		TextColors.RESET, "]       [",
-		(skillProg<skill.getMaxSkill() && data.getSkillPoints()>0
-		?	wcUtils.makeClickable("Skill Up", clicking -> {
-			Optional<RaceData> maybe = profile.getRaceData();
-			if (maybe.isPresent()) maybe.get().spendSkill(skillIndex-1);
-			sendSkillMenu(player, skillIndex);
-		}).color(TextColors.DARK_GREEN).build()
-		:   Text.of("Skill Up")),
-		TextColors.RESET, "]\n      [", wcUtils.makeClickable("Race Menu", "/racemenu").color(TextColors.DARK_AQUA).build() ,
-		TextColors.RESET, "]\n\n", skill.getDescription()));
-		
-		sendBook(player, Text.of("SpendSkill " + data.getRace().getName()), page.build());
+		sendBook(player, Text.of("SpendSkill " + data.getRace().getName(player)), page.build());
 	}
 	
 	static void sendBook(Player player, Text title, Text... pages) {
-//		pages[0] = Text.of("       [WarCraft]\n\n", pages[0]);
 		player.sendBookView(BookView.builder().addPages(pages).title(title).author(Text.of(TextColors.GOLD, "WarCraft MC")).build());
 	}
 }

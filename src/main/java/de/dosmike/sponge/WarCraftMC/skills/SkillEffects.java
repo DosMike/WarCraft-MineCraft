@@ -7,6 +7,7 @@ import de.dosmike.sponge.WarCraftMC.effects.wceTraceBeacon;
 import de.dosmike.sponge.WarCraftMC.effects.wceTraceLine;
 import de.dosmike.sponge.WarCraftMC.wcSkill;
 import de.dosmike.sponge.WarCraftMC.wcUtils;
+import de.dosmike.sponge.languageservice.API.Localized;
 import de.dosmike.sponge.mikestoolbox.living.BoxLiving;
 import org.spongepowered.api.effect.sound.SoundCategories;
 import org.spongepowered.api.effect.sound.SoundType;
@@ -177,14 +178,14 @@ public class SkillEffects {
 	}
 
 	@wcSkill("tell")
-	public static SkillResult effectTell(Living target, String message) {
+	public static SkillResult effectTell(Living target, Localized message) {
 		if (!(target instanceof Player)) return new SkillResult().push(ResultProperty.SUCCESS, false);
 		WarCraft.tell((Player)target, message);
 		return new SkillResult().push(ResultProperty.SUCCESS, true);
 	}
 	
 	@wcSkill("broadcast")
-	public static SkillResult effectTell(String message) {
+	public static SkillResult effectTell(Localized message) {
 		WarCraft.tell(message);
 		return new SkillResult().push(ResultProperty.SUCCESS, true);
 	}

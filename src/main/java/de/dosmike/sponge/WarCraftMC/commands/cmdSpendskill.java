@@ -10,17 +10,16 @@ import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.spec.CommandExecutor;
-import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.text.Text;
 
 public class cmdSpendskill implements CommandExecutor {
 	
-	public static CommandSpec getCommandSpec() {
-		 return CommandSpec.builder()
-			.description(Text.of("/spendskill <Skill> - Open the menu to spend points on a Skill by number"))
+	public static LocalizedCommandSpec getCommandSpec() {
+		 return LocalizedCommandSpec.builder()
+			.description("commands.spendskill.description")
 			.arguments(GenericArguments.onlyOne(GenericArguments.integer(Text.of("Skill"))))
-			.permission("wc.race.change")
+			.permission(cmdChangerace.permission.getId())
 			.executor(new cmdSpendskill())
 			.build();
 	}
@@ -33,7 +32,7 @@ public class cmdSpendskill implements CommandExecutor {
 			int skillIndex = (int) args.getOne("Skill").orElse(1);
 			RaceData data = profile.getRaceData().get();
 			if (skillIndex < 1 || skillIndex > data.getRace().getSkillCount()) {
-				WarCraft.tell(player, "Invalid Skill number");
+				WarCraft.tell(player, WarCraft.T().localText("commands.spendskill.error.skillnumber") );
 			} else {
 				BookMenuManager.sendSkillMenu(player, skillIndex);
 			}

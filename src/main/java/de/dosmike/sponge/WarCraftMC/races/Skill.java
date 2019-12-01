@@ -1,37 +1,59 @@
 package de.dosmike.sponge.WarCraftMC.races;
 
+import de.dosmike.sponge.WarCraftMC.WarCraft;
 import de.dosmike.sponge.WarCraftMC.catalogs.ResultProperty;
 import de.dosmike.sponge.WarCraftMC.catalogs.SkillResult;
 import de.dosmike.sponge.WarCraftMC.exceptions.ActionBuilderException;
 import de.dosmike.sponge.WarCraftMC.exceptions.ExecuteSkillException;
 import de.dosmike.sponge.WarCraftMC.exceptions.PrepareSkillActionException;
+import de.dosmike.sponge.languageservice.API.Localized;
+import org.spongepowered.api.command.CommandSource;
 
 import java.text.ParseException;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Optional;
 
 public class Skill {
-	int skillNeeded;
-	String name;
-	String desc;
-	String cooldown;
-	String id;
-	
-	double[][] parameter;
-	
-	Action[] actions;
+	private int skillNeeded;
+	private String name;
+	private List<String> desc = new LinkedList<>();
+	private String cooldown;
+	private String id;
+
+	private double[][] parameter;
+
+	private Action[] actions;
 	
 	/** the required race level before this skill can be unlocked */
 	public int getSkillLevel() {
 		return skillNeeded;
 	}
-	public String getName() {
-		return name;
+	public Localized<String> getName() {
+		return WarCraft.T().local(name);
+	}
+	public String getName(CommandSource player) {
+		return WarCraft.T().local(name).orLiteral(player);
 	}
 	public String getID() {
 		return id;
 	}
-	public String getDescription() {
-		return desc;
+//	public String getDescription() {
+//		return String.join("\n", desc);
+//	}
+	public String getDescription(CommandSource player) {
+		return desc.stream()
+				.map(d->WarCraft.T().local(d).orLiteral(player))
+				.reduce((accu,d)->accu+"\n"+d).orElse("DESCRIPTION ERROR");
+	}
+	void appendDescription(String s) {
+		desc.add(s);
+	}
+	public Action getAction(int n) {
+		return actions[n];
+	}
+	public int getActionCount() {
+		return actions.length;
 	}
 	/** returns the cooldown for this skill in milliseconds for a certain skilllevel
 	 * @param skillLevel replace level in the formula with */
@@ -78,7 +100,7 @@ public class Skill {
 			return this;
 		}
 		public Builder setDescription(String desc) {
-			building.desc=desc;
+			building.desc.add(desc);
 			return this;
 		}
 		public Builder setCooldown(String cooldown) {

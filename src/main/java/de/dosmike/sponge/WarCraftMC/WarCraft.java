@@ -3,10 +3,15 @@ package de.dosmike.sponge.WarCraftMC;
 import com.google.common.reflect.TypeToken;
 import com.google.inject.Inject;
 import de.dosmike.sponge.VersionChecker;
+import de.dosmike.sponge.WarCraftMC.Manager.PermissionRegistry;
 import de.dosmike.sponge.WarCraftMC.Manager.PlayerStateManager;
 import de.dosmike.sponge.WarCraftMC.Manager.RaceManager;
 import de.dosmike.sponge.WarCraftMC.Manager.SkillManager;
 import de.dosmike.sponge.WarCraftMC.commands.CommandRegister;
+import de.dosmike.sponge.langswitch.LocalizedText;
+import de.dosmike.sponge.languageservice.API.LanguageService;
+import de.dosmike.sponge.languageservice.API.Localized;
+import de.dosmike.sponge.languageservice.API.PluginTranslation;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
@@ -20,28 +25,36 @@ import org.spongepowered.api.event.game.GameReloadEvent;
 import org.spongepowered.api.event.game.state.GameInitializationEvent;
 import org.spongepowered.api.event.game.state.GameStartedServerEvent;
 import org.spongepowered.api.event.game.state.GameStoppingEvent;
+import org.spongepowered.api.event.service.ChangeServiceProviderEvent;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.plugin.PluginContainer;
+import org.spongepowered.api.service.permission.PermissionDescription;
+import org.spongepowered.api.service.permission.PermissionService;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColor;
 import org.spongepowered.api.text.format.TextColors;
 
-import java.io.BufferedOutputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.file.Path;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-@Plugin(id = "dosmike_warcraft", name = "WarCraft MC", version = "0.5.4")
+@Plugin(id = "dosmike_warcraft", name = "WarCraft MC", version = "0.5.5")
 public class WarCraft {
 
 	//default vars...
 	static WarCraft instance;
-//	static Lang L;
-//	public static Lang L() { return L; }
+	public static PluginTranslation T() { return translator; }
+	//public static LanguageService LS() { return languageService; }
+
+	private static PluginTranslation translator = null;
+	//private static LanguageService languageService = null;
+
+	private static PermissionService permissions = null;
+	public static Optional<PermissionService> getPermissions() { return Optional.ofNullable(permissions); }
+	public static Optional<PermissionDescription.Builder> describePermission() {
+		return getPermissions().map(p->p.newDescriptionBuilder(instance));
+	}
 
 	@Inject
 	@ConfigDir(sharedRoot = false)
@@ -60,17 +73,33 @@ public class WarCraft {
 	private Logger logger;
 	public static void l(String format, Object... args) { instance.logger.info(String.format(format, args)); }	public static void w(String format, Object... args) { instance.logger.warn(String.format(format, args)); }
 	public static void tell(Object... message) {
-		Text.Builder tb = Text.builder();
-		tb.color(TextColors.GOLD);
-		tb.append(Text.of("[WC] "));
-		if (!(message[0] instanceof TextColor)) tb.color(TextColors.RESET);
-		for (Object o : message) {
-			if (o instanceof TextColor) 
-				tb.color((TextColor)o);
-			else
-				tb.append(Text.of(o));
-		}
-		Sponge.getServer().getBroadcastChannel().send(tb.build());
+		Sponge.getServer().getBroadcastChannel().getMembers().forEach(receiver->{
+			if (receiver instanceof Player) {
+				tell(receiver, message);
+			} else {
+				Text.Builder tb = Text.builder();
+				tb.color(TextColors.GOLD);
+				tb.append(Text.of("[WC] "));
+				if (!(message[0] instanceof TextColor)) tb.color(TextColors.RESET);
+				for (Object o : message) {
+					if (o instanceof TextColor)
+						tb.color((TextColor)o);
+					else if (o instanceof LocalizedText) {
+						tb.append(((LocalizedText) o).setContextColor(tb.getColor()).orLiteral(Sponge.getServer().getConsole()));
+					}
+					else if (o instanceof Localized) {
+						Object local = ((Localized)o).orLiteral(Sponge.getServer().getConsole());
+						if (local instanceof Text) {
+							tb.append((Text)local);
+						} else {
+							tb.append(Text.of(o));
+						}
+					}
+					else
+						tb.append(Text.of(o));
+				}
+			}
+		});
 	}
 	public static void tell(Player target, Object... message) {
 		Text.Builder tb = Text.builder();
@@ -80,12 +109,31 @@ public class WarCraft {
 		for (Object o : message) {
 			if (o instanceof TextColor) 
 				tb.append(Text.of((TextColor)o));
-//			else if (o instanceof Localized)
-//				tb.append(Text.of(((Localized)o).resolve(target)));
+			else if (o instanceof LocalizedText) {
+				tb.append(((LocalizedText) o).setContextColor(tb.getColor()).orLiteral(target));
+			}
+			else if (o instanceof Localized) {
+				Object local = ((Localized) o).orLiteral(target);
+				if (local instanceof Text) {
+					tb.append((Text)local);
+				} else {
+					tb.append(Text.of(o));
+				}
+			}
 			else
 				tb.append(Text.of(o));
 		}
 		target.sendMessage(tb.build());
+	}
+
+	@Listener
+	public void onChangeServiceProvider(ChangeServiceProviderEvent event) {
+		if (event.getService().equals(LanguageService.class)) {
+			LanguageService languageService = (LanguageService) event.getNewProvider();
+			translator = languageService.registerTranslation(this); //add this plugin to langswitch
+		} else if (event.getService().equals(PermissionService.class)) {
+			permissions = (PermissionService)event.getNewProvider();
+		}
 	}
 	
 	@Listener
@@ -107,50 +155,43 @@ public class WarCraft {
 	private void checkDefaultConfigs() {
 		Path general_config = getConfigDir().getParent().resolve("dosmike_warcraft.conf");
 		Path races_config = getConfigDir().resolve("races.conf");
+		Path english_translation = getConfigDir().resolve("Lang").resolve("en.lang");
 
+		if (!english_translation.toFile().exists()) {
+			l("Extracting default translation");
+			english_translation.toFile().getParentFile().mkdirs();
+			copyAssetStream("config/en.lang", english_translation.toFile(), "  --  Unable to write default translation --");
+		}
 		if (!general_config.toFile().exists()) {
 			w("General Config is missing, extracting default!");
-			InputStream in = null;
-			BufferedOutputStream bos = null;
-			try {
-				in = getClass().getClassLoader().getResourceAsStream("config/dosmike_warcraft.conf");
-				bos = new BufferedOutputStream(new FileOutputStream(general_config.toFile()));
-				byte[] buffer = new byte[512]; int r;
-				while ((r = in.read(buffer,0,buffer.length))>0) {
-					bos.write(buffer, 0, r);
-				}
-				bos.flush();
-			} catch (IOException e) {
-				w(" -- Unable to write default config -- ");
-				e.printStackTrace();
-			} finally {
-				try { in.close(); } catch (Exception ignore) {}
-				try { bos.close(); } catch (Exception ignore) {}
-			}
+			copyAssetStream("config/dosmike_warcraft.conf", general_config.toFile(), " -- Unable to write default config -- ");
 		} else {
 			l("General Config found");
 		}
 		if (!races_config.toFile().exists()) {
 			w("Race Config is missing, extracting default!");
-			InputStream in = null;
-			BufferedOutputStream bos = null;
-			try {
-				in = getClass().getClassLoader().getResourceAsStream("config/races.conf");
-				bos = new BufferedOutputStream(new FileOutputStream(races_config.toFile()));
-				byte[] buffer = new byte[512]; int r;
-				while ((r = in.read(buffer,0,buffer.length))>0) {
-					bos.write(buffer, 0, r);
-				}
-				bos.flush();
-			} catch (IOException e) {
-				w(" -- Unable to write default config -- ");
-				e.printStackTrace();
-			} finally {
-				try { in.close(); } catch (Exception ignore) {}
-				try { bos.close(); } catch (Exception ignore) {}
-			}
+			copyAssetStream("config/races.conf", races_config.toFile(), " -- Unable to write default config -- ");
 		} else {
 			l("Race Config found");
+		}
+	}
+	private static void copyAssetStream(String resourceName, File output, String errWarn) {
+		InputStream in = null;
+		BufferedOutputStream bos = null;
+		try {
+			in = WarCraft.class.getClassLoader().getResourceAsStream(resourceName);
+			bos = new BufferedOutputStream(new FileOutputStream(output));
+			byte[] buffer = new byte[512]; int r;
+			while ((r = in.read(buffer,0,buffer.length))>0) {
+				bos.write(buffer, 0, r);
+			}
+			bos.flush();
+		} catch (IOException e) {
+			w(errWarn);
+			e.printStackTrace();
+		} finally {
+			try { in.close(); } catch (Exception ignore) {}
+			try { bos.close(); } catch (Exception ignore) {}
 		}
 	}
 
@@ -195,25 +236,33 @@ public class WarCraft {
 	
 	@Listener
 	public void onServerStopping(GameStoppingEvent event) {
-		//TODO save all palyers
+		//prevent concurrent modification exceptions when unloading
+		Set<Profile> concurrentCopy = new HashSet<>(Profile.profileCache.values());
+		concurrentCopy.forEach(Profile::saveAndUnload);
 	}
 	
 	
 	@Listener
 	public void onReload(GameReloadEvent event) {
 		loadConfig();
-		WarCraft.tell(TextColors.GREEN, "Congifs reloaded");
+		Sponge.getServer().getConsole().sendMessage(WarCraft.T().localText("configreload").orLiteral(Sponge.getServer().getConsole()));
 	}
 	
 	static List<String> inactiveWorlds = new LinkedList<>();
-	static String activePermission=null;
+//	static String activePermission=null;
 	
 	@SuppressWarnings("serial")
 	private void loadConfig() {
 		try {
 			CommentedConfigurationNode root = configManager.load();
 			inactiveWorlds = root.getNode("WarCraftWorldBL").getValue(new TypeToken<List<String>>(){}, new LinkedList<String>());
-			activePermission = root.getNode("WarCraftPermission").getString();
+//			activePermission = root.getNode("WarCraftPermission").getString();
+			String permString = root.getNode("WarCraftPermission").getString();
+			if (permString != null) {
+				PermissionRegistry.register("active", permString, Text.of("This permission is required to be considered playing WarCraft"), PermissionDescription.ROLE_USER);
+			} else {
+				PermissionRegistry.unregister("active");
+			}
 			
 			XPpipe.loadConfig(root);
 			WarCraft.l("Config: set XP handling to " + XPpipe.getMode().toString());

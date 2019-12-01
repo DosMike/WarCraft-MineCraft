@@ -1,5 +1,6 @@
 package de.dosmike.sponge.WarCraftMC.commands;
 
+import de.dosmike.sponge.WarCraftMC.Manager.PermissionRegistry;
 import de.dosmike.sponge.WarCraftMC.Profile;
 import de.dosmike.sponge.WarCraftMC.races.Action.Trigger;
 import de.dosmike.sponge.WarCraftMC.races.ActionData;
@@ -9,17 +10,18 @@ import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.spec.CommandExecutor;
-import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.service.permission.PermissionDescription;
 import org.spongepowered.api.text.Text;
 
 public class cmdAbility2 implements CommandExecutor {
 	
-	public static CommandSpec getCommandSpec() {
-		 return CommandSpec.builder()
-			.description(Text.of("/ability2 - Activate your 2. Skill"))
+	public static PermissionRegistry.Permission permission = PermissionRegistry.register("ability2", "wc.race.ability2", Text.of("Allow access to /ability2"), PermissionDescription.ROLE_USER);
+	public static LocalizedCommandSpec getCommandSpec() {
+		return LocalizedCommandSpec.builder()
+			.description("commands.ability2.description")
 			.arguments(GenericArguments.none())
-			.permission("wc.race.ability2")
+			.permission(permission.getId())
 			.executor(new cmdAbility2())
 			.build();
 	}
