@@ -6,6 +6,8 @@ import de.dosmike.sponge.WarCraftMC.Manager.PlayerStateManager;
 import de.dosmike.sponge.WarCraftMC.Manager.SkillManager;
 import de.dosmike.sponge.WarCraftMC.catalogs.ResultProperty;
 import de.dosmike.sponge.WarCraftMC.catalogs.SkillResult;
+import de.dosmike.sponge.WarCraftMC.data.DataKeys;
+import de.dosmike.sponge.WarCraftMC.data.ProjectileWeapon.impl.ProjectileWeaponDataImpl;
 import de.dosmike.sponge.WarCraftMC.effects.wceRootLiving;
 import de.dosmike.sponge.WarCraftMC.races.Action.Trigger;
 import de.dosmike.sponge.WarCraftMC.races.ActionData;
@@ -17,8 +19,15 @@ import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.entity.living.Living;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.entity.projectile.Projectile;
+import org.spongepowered.api.entity.projectile.source.BlockProjectileSource;
+import org.spongepowered.api.entity.projectile.source.ProjectileSource;
 import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.cause.EventContextKeys;
+import org.spongepowered.api.event.cause.entity.damage.DamageTypes;
+import org.spongepowered.api.event.cause.entity.damage.source.IndirectEntityDamageSource;
 import org.spongepowered.api.event.entity.CollideEntityEvent;
+import org.spongepowered.api.event.entity.ConstructEntityEvent;
 import org.spongepowered.api.event.entity.DestructEntityEvent.Death;
 import org.spongepowered.api.event.entity.MoveEntityEvent;
 import org.spongepowered.api.event.entity.living.humanoid.player.RespawnPlayerEvent;
@@ -27,6 +36,9 @@ import org.spongepowered.api.event.item.inventory.InteractItemEvent;
 import org.spongepowered.api.event.item.inventory.UseItemStackEvent;
 import org.spongepowered.api.event.network.ClientConnectionEvent;
 import org.spongepowered.api.item.ItemTypes;
+import org.spongepowered.api.item.inventory.ItemStackSnapshot;
+import org.spongepowered.api.world.Location;
+import org.spongepowered.api.world.World;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -72,11 +84,58 @@ public class SpongeEventListeners {
 			});
 		}
 	}
-	
+
+	/** attach weapon information to the projectile for the DamageEntityEvent to read back
+	 * Seems to not be called for player */
+//	@Listener
+//	public void onShootArrow(LaunchProjectileEvent event) {
+//		...
+//	}
+
+	/** attach weapon information to the projectile for the DamageEntityEvent to read back */
+	@Listener
+	public void onShootArrow(ConstructEntityEvent.Post event) {
+		if (!(event.getTargetEntity() instanceof Projectile)) return;
+		Projectile projectile = (Projectile)event.getTargetEntity();
+		Optional<ItemStackSnapshot> item = event.getContext().get(EventContextKeys.USED_ITEM);
+//		WarCraft.l("Trying to attaching projectile data via ConstructEntityEvent.Post");
+//		item.ifPresent(itemStackSnapshot -> new ProjectileWeapon(itemStackSnapshot).attachTo(projectile));
+		item.filter(weapon->!weapon.getType().equals(ItemTypes.AIR))
+				.map(weapon->projectile.offer(new ProjectileWeaponDataImpl(weapon)))
+				.filter(result->!result.getRejectedData().isEmpty()).ifPresent(result->{
+			ProjectileSource ps = projectile.getShooter();
+			String projectileSource = "UNKNOWN SOURCE";
+			if (ps instanceof BlockProjectileSource) {
+				Location<World> location = ((BlockProjectileSource) ps).getLocation();
+				projectileSource = ((BlockProjectileSource) ps).getBlock().getType().getId()+" @ "+
+						location.getExtent().getUniqueId().toString()+"/"+
+						location.getBlockX()+"/"+location.getBlockY()+"/"+location.getBlockZ();
+			} else if (ps instanceof Entity) {
+				projectileSource = ((Entity) ps).getType().getId() + " (" + ((Entity) ps).getUniqueId().toString()+")";
+			}
+			WarCraft.w("Could not attach weapon data to projectile [Construct Entity Event : Projectile %s, Source %s, Weapon %s]", projectile.getType().getId(), projectileSource, item.get().getType().getId());
+		});
+	}
+
 	@Listener
 	public void onCombatEntity(BoxCombatEvent event) {
 		Living attacker = event.getSourceEntity();
 		Living target = event.getTargetEntity();
+		Optional<ItemStackSnapshot> weapon = event.getOriginal().getContext().get(EventContextKeys.USED_ITEM);
+		//Try to read custom weapon data in case of arrow
+		if (!weapon.isPresent()) {
+			//get projectile
+			Optional<IndirectEntityDamageSource> damageSource = event.getOriginal().getCause()
+					.allOf(IndirectEntityDamageSource.class).stream()
+					.filter(source -> source.getType().equals(DamageTypes.PROJECTILE)).findFirst();
+			if (damageSource.isPresent()) {
+				IndirectEntityDamageSource source = damageSource.get();
+				Entity projectile = source.getSource();
+				weapon = projectile.get(DataKeys.PROJECTILE_WEAPON);
+//				weapon = ProjectileWeapon.readFrom(projectile).map(ProjectileWeapon::getWeapon);
+			}
+		}
+//		WarCraft.l("Weapon: %s", weapon.orElse(ItemStackSnapshot.NONE).getType().getId());
 		if (attacker.equals(target)) return; //we won't give xp for being stupid and hurting yourself
 		if (wceRootLiving.frozenEntities.contains(attacker.getUniqueId())) event.setCancelled(true);
 		double targetdamage = event.getOriginal().getFinalDamage();
@@ -90,6 +149,7 @@ public class SpongeEventListeners {
 			ActionData data = ActionData.builder(Trigger.ONATTACK)
 					.setSelf((Player)attacker)
 					.setOpponent(target)
+					.setItem(weapon.orElse(ItemStackSnapshot.NONE).createStack())
 					.setDamage(targetdamage)
 					.build();
 			Optional<SkillResult> result = profile.flatMap(p->p.getRaceData().flatMap(race->race.fire(p, data)));
@@ -109,6 +169,7 @@ public class SpongeEventListeners {
 			ActionData data = ActionData.builder(Trigger.ONHIT)
 					.setSelf((Player)target)
 					.setOpponent((Living)attacker)
+					.setItem(weapon.orElse(ItemStackSnapshot.NONE).createStack())
 					.setDamage(targetdamage)
 					.build();
 			Optional<SkillResult> result = profile.flatMap(p->p.getRaceData().flatMap(race->race.fire(p, data)));
@@ -123,6 +184,7 @@ public class SpongeEventListeners {
 			ActionData data = ActionData.builder(Trigger.ONDEATH)
 					.setSelf((Player)target)
 					.setOpponent((Living)attacker)
+					.setItem(weapon.orElse(ItemStackSnapshot.NONE).createStack())
 					.setDamage(targetdamage)
 					.build();
 //			profile.getRaceData().ifPresent(race->race.fire(profile, data)); //why was this called another time here?

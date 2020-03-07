@@ -13,6 +13,7 @@ commands.ultimate.description:/ultimate - Activate your 4. Skill (Ultimate)
 commands.changerace.description:/changerace name - Change your race to a named race
 commands.changerace.error.nosuchrace:There is no such race
 commands.changerace.error.level:You need level $required to change to that race (currently $current)
+commands.changerace.error.permission:The race $race requires permission $permission
 commands.changerace.success:Your race will be changed the next time you spawn
 commands.raceinfo.description:/raceinfo name - Display some information about a race
 commands.raceinfo.error.nosuchrace:There is no such race

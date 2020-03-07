@@ -103,11 +103,11 @@ public class Profile {
 			if (r.isPresent()) {
 				p.racedata = RaceData.loadOrCreate(r.get(), root.getNode("races"));
 				if (p.racedata==null) {
-					WarCraft.tell(player, TextColors.GOLD, WarCraft.T().localText("profile.error.load"));
+					WarCraft.tell(player, TextColors.GOLD, WarCraft.T().localText("player.error.load"));
 					WarCraft.w("%s might have lost race progress!", player.toString());
 				}
 			} else {
-				WarCraft.tell(player, TextColors.GOLD, WarCraft.T().localText("profile.error.norace")
+				WarCraft.tell(player, TextColors.GOLD, WarCraft.T().localText("player.error.norace")
                                 .replace("/racelist",  wcUtils.makeClickable("/racelist").build()));
 			}
 		} catch (Exception e) {
@@ -222,7 +222,7 @@ public class Profile {
 				racedata = RaceData.loadOrCreate(to, root.getNode("races"));
 				Optional<Player> op = Sponge.getServer().getPlayer(playerID);
 				if (op.isPresent()) {
-					WarCraft.tell(op.get(), WarCraft.T().localText("profile.racechange")
+					WarCraft.tell(op.get(), WarCraft.T().localText("player.racechange")
                             .replace("$race", to.getName()));
 				}
 //				XPpipe.processWarCraftXP(this, 0, new EventCause(cause).get());

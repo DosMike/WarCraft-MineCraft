@@ -8,6 +8,12 @@ import de.dosmike.sponge.WarCraftMC.Manager.PlayerStateManager;
 import de.dosmike.sponge.WarCraftMC.Manager.RaceManager;
 import de.dosmike.sponge.WarCraftMC.Manager.SkillManager;
 import de.dosmike.sponge.WarCraftMC.commands.CommandRegister;
+import de.dosmike.sponge.WarCraftMC.data.DataKeys;
+import de.dosmike.sponge.WarCraftMC.data.ProjectileWeapon.ImmutableProjectileWeaponData;
+import de.dosmike.sponge.WarCraftMC.data.ProjectileWeapon.ProjectileWeaponData;
+import de.dosmike.sponge.WarCraftMC.data.ProjectileWeapon.impl.ImmutableProjectileWeaponDataImpl;
+import de.dosmike.sponge.WarCraftMC.data.ProjectileWeapon.impl.ProjectileWeaponBuilder;
+import de.dosmike.sponge.WarCraftMC.data.ProjectileWeapon.impl.ProjectileWeaponDataImpl;
 import de.dosmike.sponge.langswitch.LocalizedText;
 import de.dosmike.sponge.languageservice.API.LanguageService;
 import de.dosmike.sponge.languageservice.API.Localized;
@@ -19,13 +25,20 @@ import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.config.DefaultConfig;
+import org.spongepowered.api.data.DataManager;
+import org.spongepowered.api.data.DataQuery;
+import org.spongepowered.api.data.DataRegistration;
+import org.spongepowered.api.data.key.Key;
+import org.spongepowered.api.data.value.mutable.Value;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.game.GameRegistryEvent;
 import org.spongepowered.api.event.game.GameReloadEvent;
 import org.spongepowered.api.event.game.state.GameInitializationEvent;
 import org.spongepowered.api.event.game.state.GameStartedServerEvent;
 import org.spongepowered.api.event.game.state.GameStoppingEvent;
 import org.spongepowered.api.event.service.ChangeServiceProviderEvent;
+import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.service.permission.PermissionDescription;
@@ -39,10 +52,13 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-@Plugin(id = "dosmike_warcraft", name = "WarCraft MC", version = "0.5.5")
+@Plugin(id = "dosmike_warcraft", name = "WarCraft MC", version = "0.5.6")
 public class WarCraft {
 
 	//default vars...
+	@Inject
+	private PluginContainer container;
+
 	static WarCraft instance;
 	public static PluginTranslation T() { return translator; }
 	//public static LanguageService LS() { return languageService; }
@@ -125,6 +141,37 @@ public class WarCraft {
 		}
 		target.sendMessage(tb.build());
 	}
+
+	//region Custom Data
+
+    private DataRegistration<ProjectileWeaponData, ImmutableProjectileWeaponData> PROJECTILE_WEAPON_DATA_REGISTRATION;
+	@Listener
+	public void onKeyRegistration(GameRegistryEvent.Register<Key<?>> event) {
+	    DataKeys.PROJECTILE_WEAPON = Key.builder()
+                .type(new TypeToken<Value<ItemStackSnapshot>>(){})
+                .id("warcraft:projectileweapon")
+                .name("Projectile Weapon")
+                .query(DataQuery.of("Weapon"))
+                .build();
+	}
+
+	@Listener
+	public void onDataRegistration(GameRegistryEvent.Register<DataRegistration<?,?>> event) {
+	    final DataManager manager = Sponge.getDataManager();
+	    //ItemStackSnapshot should already have a builder
+        PROJECTILE_WEAPON_DATA_REGISTRATION = DataRegistration.builder()
+                .dataClass(ProjectileWeaponData.class)
+                .dataImplementation(ProjectileWeaponDataImpl.class)
+                .immutableClass(ImmutableProjectileWeaponData.class)
+                .immutableImplementation(ImmutableProjectileWeaponDataImpl.class)
+                .builder(new ProjectileWeaponBuilder())
+                .name("Projectile Weapon Data")
+                .id("warcraft:weapon")
+                .build();
+	}
+
+	//endregion
+
 
 	@Listener
 	public void onChangeServiceProvider(ChangeServiceProviderEvent event) {
